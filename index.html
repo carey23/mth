@@ -173,19 +173,15 @@ h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-sp
 .day:hover .add, .add:focus-visible { opacity: 1; }
 @media (hover: none) { .dn .add { opacity: 0.75; } }
 .list { padding: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.ent { --h: 225; display: block; width: 100%; text-align: left; border: 0; padding: 4px 7px 4px 10px; border-radius: 9px; font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere; position: relative;
-  background: hsl(var(--h) calc(var(--ds) * 0.6) var(--tbl)); box-shadow: inset 3px 0 0 hsl(var(--h) var(--ds) 52%); transition: filter 0.12s, transform 0.12s; }
-.ent.nod { --ds: 6%; }
-.ent:hover { filter: brightness(0.97) saturate(1.15); transform: translateX(1px); }
+.ent { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 1px 4px; border-radius: 5px; font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; transition: background 0.12s; }
+.ent:hover { background: var(--hover); }
 .ent.dim { opacity: 0.25; }
-.ty { display: inline-block; padding: 0 6px; margin-right: 3px; border-radius: 999px; font-size: 10.5px; font-weight: 700; line-height: 1.55; vertical-align: 1px; background: color-mix(in srgb, currentColor 13%, transparent); }
+.ty { font-weight: 600; }
 .t-new { color: var(--t-new); }
-.ty.t-new { background: var(--t-new); color: var(--on-new); }
 .t-rev { color: var(--t-rev); }
 .t-rep { color: var(--t-rep); }
 .t-etc { color: var(--t-etc); }
 .t-cov { color: var(--accent); }
-.ent > span:nth-of-type(2) { font-weight: 500; }
 .dz { font-weight: 700; font-size: 12px; color: hsl(var(--h) var(--ds) var(--dl)); white-space: nowrap; }
 .dz.none { color: var(--muted); font-weight: 400; }
 .hs { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
@@ -233,7 +229,7 @@ h2.sec { margin: 6px 0 -4px; font-size: 16px; }
 .book { background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; box-shadow: var(--sh); padding: 12px 14px; min-width: 0; }
 .book h3 { margin: 0 0 6px; font-size: 15px; overflow-wrap: anywhere; }
 .rows { display: flex; flex-direction: column; }
-.row { display: grid; grid-template-columns: 6.6rem 4.8rem minmax(0, 1fr); gap: 6px; align-items: baseline; text-align: left; border: 0; border-top: 1px solid var(--hair); background: none; padding: 6px 4px; font-size: 13px; border-radius: 8px; }
+.row { display: grid; grid-template-columns: 6.6rem 4.4rem minmax(0, 1fr); gap: 6px; align-items: baseline; text-align: left; border: 0; border-top: 1px solid var(--hair); background: none; padding: 6px 4px; font-size: 13px; border-radius: 8px; }
 .row:hover { background: var(--hover); }
 .row .d { font-variant-numeric: tabular-nums; color: var(--muted); }
 .row .m { overflow-wrap: anywhere; }
@@ -289,7 +285,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   .dn .hl { max-width: 100%; }
   .dn .add { position: absolute; top: 10px; right: 10px; margin: 0; opacity: 0.8; }
   .list { flex: 1; padding-right: 26px; }
-  .ent { font-size: 13.5px; padding: 6px 9px 6px 12px; }
+  .ent { font-size: 13.5px; padding: 3px 5px; }
   .day.idle { padding: 6px 12px; align-items: center; box-shadow: none; background: transparent; border-style: dashed; }
   .day.idle .dn { flex-direction: row; align-items: center; gap: 8px; width: auto; }
   .day.idle .list { display: none; }
@@ -528,7 +524,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   }
   function typeTag(type) {
     var t = TYPE_BY[type] || TYPE_BY['기타'];
-    return h('span', { class: 'ty ' + t.cls, text: t.lab });
+    return h('span', { class: 'ty ' + t.cls, text: '[' + t.lab + ']' });
   }
   function fmtDot(d) { return d.replace(/-/g, '.'); }
 
@@ -587,7 +583,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   }
   function entryEl(e) {
     var dim = filterDes && ((filterDes === '__none' && e.designer) || (filterDes !== '__none' && e.designer !== filterDes));
-    return h('button', { type: 'button', class: 'ent' + (dim ? ' dim' : '') + (e.designer ? '' : ' nod'), style: e.designer ? dStyle(e.designer) : null, 'data-id': e.id, title: (e.type || '') + ' · ' + e.title + (e.designer ? ' · ' + e.designer : '') },
+    return h('button', { type: 'button', class: 'ent' + (dim ? ' dim' : ''), 'data-id': e.id, title: (e.type || '') + ' · ' + e.title + (e.designer ? ' · ' + e.designer : '') },
       typeTag(e.type), ' ', h('span', { text: e.title }), ' ', tag(e.designer, e.tagRaw, e.ext),
       e.history ? h('span', { class: 'hs', text: e.history }) : null);
   }
