@@ -337,6 +337,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .cp-row .x, .mini { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
 .att-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13.5px; }
 .att-row a { color: var(--accent); font-weight: 600; text-decoration: none; }
+.vw-author { margin-top: -6px; font-size: 15px; font-weight: 600; color: var(--ink); }
+.vw-author span { display: inline-block; margin-right: 8px; padding: 1px 9px; border-radius: 999px; background: var(--tint); color: var(--accent); font-size: 12.5px; font-weight: 700; }
 .vw-sub { display: inline-block; margin-left: 10px; font-size: 13.5px; font-weight: 600; color: var(--muted); white-space: pre-wrap; }
 .vw-key { display: grid; grid-template-columns: 1.9fr 1fr 1fr; background: var(--bg); border: 1px solid var(--hair); border-radius: 12px; }
 .vw-key > div { padding: 10px 14px; border-left: 1px solid var(--hair); min-width: 0; }
@@ -411,7 +413,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 
   <section id="vBooks" hidden>
     <div class="tools">
-      <input type="search" id="q" placeholder="도서명, 조판자, 담당자, 판형, 지류, 경쟁사, 첨부파일명 검색" aria-label="도서 검색">
+      <input type="search" id="q" placeholder="도서명, 저자, 조판자, 담당자, 판형, 지류, 경쟁사, 첨부파일명 검색" aria-label="도서 검색">
       <div class="seg" id="typeFilter" role="group" aria-label="구분 필터"></div>
     </div>
     <div class="books" id="bookList" style="margin-top:12px"></div>
@@ -431,6 +433,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <label class="f" id="edExtWrap" hidden><span>외주 이름 (선택)</span><input type="text" id="edExt" maxlength="30" placeholder="예) 홍길동 / OO편집"></label>
     <div class="bk-box" id="edBook">
       <h3>발주도서 정보 (선택)</h3>
+      <label class="f"><span>저자명</span><input type="text" id="bkAuthor" maxlength="120" placeholder="예: 홍길동 외 2인"></label>
       <div class="bk-row">
         <label class="f"><span>담당자 (편집)</span><select id="bkMgr"></select></label>
         <label class="f"><span>표지 작업자</span><select id="bkCover"></select></label>
@@ -549,7 +552,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   var compact = false;
   var dlCap = null;
   var orders = new Map();
-  var BOOK_FORMATS = ['4x6판', '신국판', '국판', '국배판', '크라운판', 'A4', 'A5', 'B5'];
+  var BOOK_FORMATS = ['4×6배판', '신국판', '국판', '국배판', '크라운판', 'A4', 'A5', 'B5'];
   var METHODS = ['옵셋', '2도 옵셋', '인디고', '디지털(POD)'];
   var WORK_TOOLS = ['InD', 'PC'];
   var MANAGERS = ['차인태', '이미향', '신보용', '권윤주', '김지혜', '김진영', '백혜림', '정지연', '박온누리', '윤소연', '임한나', '김희현', '김예민'];
@@ -577,7 +580,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function orderOf(id) { var r = orders.get(id); return r ? r.data : null; }
   function orderHay(id) {
     var d = orderOf(id); if (!d) return '';
-    return [d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
+    return [d.author, d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
   }
 
   function holiday(y, m, d) {
@@ -1066,6 +1069,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('edRaw').hidden = !raw;
     $('edRaw').textContent = raw ? '원본 파일의 표기는 [' + raw + '] 입니다. 조판자를 고르면 이 표기는 사라집니다.' : '';
     var bd = (id && orderOf(id)) || {};
+    $('bkAuthor').value = bd.author || '';
     $('bkMgr').value = bd.manager || '';
     $('bkCover').value = bd.coverDesigner || '';
     $('bkPub').value = bd.publishDate || '';
@@ -1137,6 +1141,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     box.appendChild(h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, typeTag(e.type), e.history ? h('small', { class: 'hs', text: e.history }) : null,
       d.confirmed ? h('span', { style: 'margin-left:auto' }, stampEl(true, pop)) : null));
     box.appendChild(h('h2', { text: e.title, style: 'font-size:22px;margin:0' }));
+    if (d.author) box.appendChild(h('div', { class: 'vw-author' }, h('span', { text: '저자' }), d.author));
     var wk = [];
     wk.push('표지 : ' + (d.coverDesigner || '미정'));
     wk.push('내지 : ' + (e.designer ? (e.designer === '외주' && e.ext ? '외주 ' + e.ext : e.designer) : '미정'));
@@ -1202,13 +1207,13 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     });
     var v = function (id) { return ($(id).value || '').trim(); };
     return {
-      manager: v('bkMgr'), coverDesigner: v('bkCover'), publishDate: v('bkPub'), paperType: v('bkPaper'), bookFormat: v('bkFmt'), productionMethod: v('bkMethod'),
+      author: v('bkAuthor'), manager: v('bkMgr'), coverDesigner: v('bkCover'), publishDate: v('bkPub'), paperType: v('bkPaper'), bookFormat: v('bkFmt'), productionMethod: v('bkMethod'),
       printRun: v('bkRun') ? Number(v('bkRun')) : null, edition: v('bkEd'), pageCount: v('bkPages') ? Number(v('bkPages')) : null,
       workTool: v('bkTool') || 'InD', listPrice: v('bkPrice') ? Number(v('bkPrice')) : null, details: v('bkDetails'), competitors: comps
     };
   }
   function bookHasContent(b, atts) {
-    return !!(b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.edition || b.pageCount || b.listPrice || b.details || b.competitors.length || atts.length);
+    return !!(b.author || b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.edition || b.pageCount || b.listPrice || b.details || b.competitors.length || atts.length);
   }
   // 발주도서 정보 저장 (book_orders 테이블, 도서 항목 id로 연결)
   var confirmReset = false;
@@ -1404,7 +1409,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var d = orderOf(id) || {};
     var n = function (v, suf) { return v ? Number(v).toLocaleString() + suf : '-'; };
     var t = function (v) { return v ? esc(v) : '-'; };
-    var o = '<div class="b"><h2>[' + esc(e.type || '') + '] ' + esc(e.title) + '</h2><div class="sub">' + esc('표지 : ' + (d.coverDesigner || '미정') + ' · 내지 : ' + (e.designer ? (e.designer === '외주' && e.ext ? '외주 ' + e.ext : e.designer) : '미정')) + (e.history ? ' · ' + esc(e.history) : '') + '</div>';
+    var o = '<div class="b"><h2>[' + esc(e.type || '') + '] ' + esc(e.title) + '</h2>' + (d.author ? '<div class="sub" style="font-size:11pt;color:#000;font-weight:700">저자 ' + esc(d.author) + '</div>' : '') + '<div class="sub">' + esc('표지 : ' + (d.coverDesigner || '미정') + ' · 내지 : ' + (e.designer ? (e.designer === '외주' && e.ext ? '외주 ' + e.ext : e.designer) : '미정')) + (e.history ? ' · ' + esc(e.history) : '') + '</div>';
     o += '<div class="k"><div><div class="l">담당자</div><div class="v">' + t(d.manager) + '</div></div><div><div class="l">출간일</div><div class="v">' + esc(fmtDot(e.date)) + '</div></div><div><div class="l">발행일</div><div class="v">' + (d.publishDate ? esc(fmtDot(d.publishDate)) : '-') + '</div></div></div>';
     o += '<table><tr><td><div class="l">판형</div><b>' + t(d.bookFormat) + '</b></td><td><div class="l">제작방식</div><b>' + t(d.productionMethod) + '</b></td><td><div class="l">제작부수</div><b>' + n(d.printRun, '부') + '</b></td><td><div class="l">판/쇄</div><b>' + t(d.edition) + '</b></td></tr>' +
       '<tr><td><div class="l">페이지</div><b>' + n(d.pageCount, 'p') + '</b></td><td><div class="l">작업툴</div><b>' + t(d.workTool) + '</b></td><td><div class="l">정가</div><b>' + n(d.listPrice, '원') + '</b></td><td><div class="l">지류</div><b>' + t(d.paperType) + '</b></td></tr></table>';
