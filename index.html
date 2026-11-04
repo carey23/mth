@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>기획1부 월간계획표</title>
+<title>도서출판본부 월간계획표</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: 일~토 달력을 부드러운 카드 격자로 구성한다. 날짜마다 둥근 카드, 도서는 조판자 색의 알약 카드로 쌓인다.
@@ -115,7 +115,12 @@ button { cursor: pointer; }
 .wrap { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 
 /* 상단 */
-.top { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.top { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 26px 16px 22px; border-radius: 22px; background: var(--surface); border: 1px solid var(--hair); box-shadow: var(--sh); isolation: isolate; }
+.top .art { position: absolute; inset: 0; z-index: -2; opacity: .6; }
+.top .art svg { width: 100%; height: 100%; display: block; }
+.top::after { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse 42% 78% at 50% 50%, color-mix(in srgb, var(--surface) 82%, transparent), transparent 100%); }
+@media (prefers-color-scheme: dark) { .top .art { opacity: .3; } }
+@media print { .top { background: none; border: 0; box-shadow: none; } .top .art, .top::after { display: none; } }
 h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
 .sub { display: inline-block; padding: 3px 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--hair); box-shadow: var(--sh); font-size: clamp(13px, 2.4vw, 15px); font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; justify-content: space-between; }
@@ -334,7 +339,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>기획1부 월간계획표</h1>
+    <div class="art" id="art" aria-hidden="true"></div>
+    <h1>도서출판본부 월간계획표</h1>
     <div class="sub" id="sub"></div>
   </header>
 
@@ -512,7 +518,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   var BOOK_FORMATS = ['4x6판', '신국판', '국판', '국배판', '크라운판', 'A4', 'A5', 'B5'];
   var METHODS = ['옵셋', '2도 옵셋', '인디고', '디지털(POD)'];
   var WORK_TOOLS = ['InD', 'PC'];
-  var MANAGERS = ['차인태', '신보용', '권윤주', '김지혜', '김진영', '백혜림', '정지연', '박온누리', '윤소연', '임한나', '김예민'];
+  var MANAGERS = ['차인태', '이미향', '신보용', '권윤주', '김지혜', '김진영', '백혜림', '정지연', '박온누리', '윤소연', '임한나', '김희현', '김예민'];
   var ATT_MAX = 5, ATT_BYTES = 2 * 1024 * 1024;
   var ATT_EXT = ['jpg','jpeg','png','gif','webp','pdf','hwp','hwpx','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','indd','idml','ai','psd'];
   var edAtt = [], edComps = [];
@@ -550,6 +556,48 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   var HUES = [25, 200, 120, 300, 55, 235, 165, 335, 270, 215];
   function hue(name) { var i = dIdx(name); return HUES[i < 0 ? 0 : i]; }
   function dStyle(name) { return '--h:' + hue(name) + (name === '외주' ? ';--ds:10%' : ''); }
+
+  /* ---------- 월별 배너 그림 (은은한 수채 느낌의 그림, 외부 이미지 없음) ---------- */
+  var SCENE_BG = { 1: ['#e9eff8', '#d3e0f2'], 2: ['#f8e8ef', '#efd3e2'], 3: ['#eaf4e6', '#f7e8ee'], 4: ['#fce8ec', '#f7d6e0'], 5: ['#e6f3de', '#d2e9c8'], 6: ['#e1eaf2', '#cbdbec'], 7: ['#dbeef6', '#c2e1ef'], 8: ['#fef2d2', '#fae0a6'], 9: ['#e8e5f5', '#d6d0ef'], 10: ['#fceBd6', '#f6d4ae'], 11: ['#f4eadb', '#e9d5b7'], 12: ['#e5ebf3', '#d0dae9'] };
+  function sceneSvg(m) {
+    var seed = m * 9301 + 49297;
+    function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+    function side() { return rnd() < 0.5 ? 40 + rnd() * 380 : 780 + rnd() * 380; }
+    function flower(x, y, r, c, ctr) {
+      var o = '<g transform="translate(' + x.toFixed(0) + ' ' + y.toFixed(0) + ')">';
+      for (var i = 0; i < 5; i++) o += '<ellipse cx="0" cy="' + (-r * 0.62) + '" rx="' + (r * 0.46) + '" ry="' + (r * 0.62) + '" transform="rotate(' + (i * 72) + ')" fill="' + c + '"/>';
+      return o + '<circle r="' + (r * 0.22) + '" fill="' + ctr + '"/></g>';
+    }
+    function maple(x, y, k, rot, c) { return '<polygon transform="translate(' + x.toFixed(0) + ' ' + y.toFixed(0) + ') rotate(' + rot + ') scale(' + k + ')" points="0,-10 3,-5 8,-7 6,-1 11,0 6,3 8,8 2,6 0,12 -2,6 -8,8 -6,3 -11,0 -6,-1 -8,-7 -3,-5" fill="' + c + '"/>'; }
+    function ginkgo(x, y, k, rot, c) { return '<path transform="translate(' + x.toFixed(0) + ' ' + y.toFixed(0) + ') rotate(' + rot + ') scale(' + k + ')" d="M0 12 C-15 5 -17 -8 -8 -13 C-4 -8 4 -8 8 -13 C17 -8 15 5 0 12Z" fill="' + c + '"/>'; }
+    function dot(x, y, r, c) { return '<circle cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" r="' + r + '" fill="' + c + '"/>'; }
+    function hills(c1, c2) { return '<path d="M0 200 Q150 140 320 175 T640 165 T960 172 T1200 150 V220 H0Z" fill="' + c1 + '"/><path d="M0 220 Q200 175 420 200 T860 192 T1200 196 V220 H0Z" fill="' + c2 + '"/>'; }
+    function wave(y, a, c) { var d = 'M0 ' + y; for (var x = 0; x < 1200; x += 100) d += ' q50 ' + (-a) + ' 100 0'; return '<path d="' + d + ' V220 H0Z" fill="' + c + '"/>'; }
+    function twig(d, c) { return '<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="3" stroke-linecap="round"/>'; }
+    var bg = SCENE_BG[m], o = '', i, x, y;
+    switch (m) {
+      case 1: o += hills('#fff', '#f4f8fd') + '<path d="M60 175 L170 80 L240 140 L300 100 L420 175Z M820 175 L930 70 L1010 135 L1070 95 L1180 175Z" fill="#c5d4ea" opacity=".7"/>'; for (i = 0; i < 40; i++) o += dot(rnd() * 1200, rnd() * 190, 1.5 + rnd() * 2.5, '#fff'); break;
+      case 2: o += twig('M0 40 Q150 70 260 30 T470 60 M1200 150 Q1050 120 940 160 T740 130', '#9b7b6c'); for (i = 0; i < 9; i++) o += flower(side(), 25 + rnd() * 150, 11 + rnd() * 6, '#f4b5cc', '#e08aa9'); break;
+      case 3: o += hills('#cfe6c6', '#b9dcb0'); for (i = 0; i < 26; i++) { x = rnd() * 1200; y = rnd() * 160; o += '<line x1="' + x.toFixed(0) + '" y1="' + y.toFixed(0) + '" x2="' + (x - 7).toFixed(0) + '" y2="' + (y + 20).toFixed(0) + '" stroke="#9fb9d8" stroke-width="1.6" opacity=".7"/>'; } o += twig('M1200 40 Q1060 70 960 30', '#8a7a68'); for (i = 0; i < 6; i++) o += '<ellipse cx="' + (980 + i * 38) + '" cy="' + (45 + (i % 2) * 14) + '" rx="9" ry="5" fill="#9fcf8f" transform="rotate(-25 ' + (980 + i * 38) + ' 50)"/>'; break;
+      case 4: o += twig('M0 30 Q180 70 330 25 T560 55 M1200 40 Q1040 80 900 35 T700 60', '#8d6c63'); for (i = 0; i < 14; i++) o += flower(side(), 18 + rnd() * 160, 9 + rnd() * 6, '#fbc8d6', '#e48fae'); for (i = 0; i < 12; i++) o += dot(rnd() * 1200, rnd() * 200, 3 + rnd() * 2, '#f9d3de'); break;
+      case 5: o += hills('#c4e2b6', '#aad59a'); for (i = 0; i < 9; i++) { x = side(); y = 30 + rnd() * 120; o += '<ellipse cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" rx="26" ry="11" fill="#9ccf8a" opacity=".85" transform="rotate(' + (rnd() * 80 - 40).toFixed(0) + ' ' + x.toFixed(0) + ' ' + y.toFixed(0) + ')"/>'; } for (i = 0; i < 5; i++) o += flower(side(), 50 + rnd() * 110, 12, '#f2a8b8', '#d9708c'); break;
+      case 6: for (i = 0; i < 34; i++) { x = rnd() * 1200; y = rnd() * 170; o += '<line x1="' + x.toFixed(0) + '" y1="' + y.toFixed(0) + '" x2="' + (x - 6).toFixed(0) + '" y2="' + (y + 22).toFixed(0) + '" stroke="#8fb0d4" stroke-width="1.5" opacity=".65"/>'; } o += hills('#c9dccc', '#b6cfba'); for (i = 0; i < 4; i++) { x = i < 2 ? 120 + i * 120 : 880 + (i - 2) * 120; for (var j = 0; j < 14; j++) o += dot(x + (rnd() - .5) * 90, 130 + (rnd() - .5) * 60, 9 + rnd() * 4, j % 2 ? '#a9b8ea' : '#c3a6e0'); } break;
+      case 7: o += dot(1010, 70, 38, '#fbe6a1') + dot(1010, 70, 56, 'rgba(251,230,161,.35)') + wave(150, 14, '#a8d6e8') + wave(180, 12, '#8ec6dd'); for (i = 0; i < 5; i++) o += '<path d="M' + (100 + i * 70) + ' ' + (40 + (i % 2) * 18) + ' q10 -9 20 0 q10 -9 20 0" fill="none" stroke="#fff" stroke-width="2.2" opacity=".9"/>'; break;
+      case 8: o += dot(180, 70, 40, '#fbd46b') + dot(180, 70, 62, 'rgba(251,212,107,.35)') + hills('#f2d995', '#e9c777'); for (i = 0; i < 6; i++) { x = i < 3 ? 320 + i * 80 : 840 + (i - 3) * 90; y = 100 + rnd() * 50; o += twig('M' + x + ' ' + (y + 12) + ' V215', '#8fb06b'); for (var q = 0; q < 12; q++) o += '<ellipse cx="0" cy="-19" rx="6" ry="13" transform="translate(' + x + ' ' + y + ') rotate(' + (q * 30) + ')" fill="#f7b92e"/>'; o += dot(x, y, 11, '#8a5a2b'); } break;
+      case 9: o += dot(960, 75, 44, '#fbf3cf') + dot(960, 75, 70, 'rgba(251,243,207,.35)') + hills('#cfc9ea', '#bdb5e0'); for (i = 0; i < 16; i++) { x = i < 8 ? 60 + i * 38 : 700 + (i - 8) * 34; var h2 = 70 + rnd() * 50; o += '<path d="M' + x + ' 215 Q' + (x + 8) + ' ' + (215 - h2 / 2) + ' ' + (x + 16) + ' ' + (215 - h2) + '" stroke="#a9a1cf" stroke-width="2" fill="none"/>' + '<ellipse cx="' + (x + 16) + '" cy="' + (215 - h2 - 8) + '" rx="3" ry="11" fill="#d9d2f0" transform="rotate(20 ' + (x + 16) + ' ' + (215 - h2) + ')"/>'; } break;
+      case 10: for (i = 0; i < 20; i++) o += maple(side(), 15 + rnd() * 175, 1 + rnd() * 1.1, (rnd() * 360).toFixed(0), ['#e8743b', '#d9482b', '#f2a33b', '#c8392b'][i % 4]); break;
+      case 11: o += twig('M1200 35 Q1050 75 900 40 T660 70', '#8d6c55'); for (i = 0; i < 5; i++) o += dot(930 + i * 62, 82 + (i % 2) * 16, 14, '#ee9a45') + '<path d="M' + (930 + i * 62 - 6) + ' ' + (66 + (i % 2) * 16) + ' h12" stroke="#7f9a4c" stroke-width="3"/>'; for (i = 0; i < 16; i++) o += ginkgo(i < 9 ? 40 + rnd() * 420 : 600 + rnd() * 560, 20 + rnd() * 170, 1 + rnd() * .9, (rnd() * 360).toFixed(0), ['#f2c84b', '#e9b53a', '#f7d96a'][i % 3]); break;
+      case 12: for (i = 0; i < 46; i++) o += dot(rnd() * 1200, rnd() * 200, 1.5 + rnd() * 2.8, '#fff'); o += twig('M0 60 Q120 90 230 50 M1200 150 Q1090 120 980 160', '#5f7d66'); for (i = 0; i < 16; i++) { x = i < 8 ? 10 + i * 28 : 990 + (i - 8) * 24; y = i < 8 ? 55 + Math.sin(i) * 16 : 150 - Math.sin(i) * 14; o += '<line x1="' + x + '" y1="' + y.toFixed(0) + '" x2="' + (x + 12) + '" y2="' + (y + 22).toFixed(0) + '" stroke="#6f9a78" stroke-width="2.4" stroke-linecap="round"/><line x1="' + x + '" y1="' + y.toFixed(0) + '" x2="' + (x - 11) + '" y2="' + (y + 20).toFixed(0) + '" stroke="#6f9a78" stroke-width="2.4" stroke-linecap="round"/>'; } o += dot(1040, 40, 6, '#e6573f') + dot(150, 120, 6, '#e6573f'); break;
+    }
+    return '<svg viewBox="0 0 1200 220" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + bg[0] + '"/><stop offset="1" stop-color="' + bg[1] + '"/></linearGradient></defs><rect width="1200" height="220" fill="url(#sg)"/>' + o + '</svg>';
+  }
+  var artMonth = 0;
+  function renderArt() {
+    var m = view.m || (now.getMonth() + 1);
+    if (artMonth === m) return;
+    artMonth = m;
+    $('art').innerHTML = sceneSvg(m);
+  }
 
   /* ---------- 상태 표시 ---------- */
   function setStatus(kind, text) {
@@ -840,8 +888,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     Array.prototype.forEach.call(mb.children, function (b) {
       b.setAttribute('aria-pressed', String(t === 'month' && +b.getAttribute('data-m') === view.m));
     });
+    renderArt();
     $('sub').textContent = t === 'month' ? '(' + view.y + '年 ' + pad(view.m) + '月)' : t === 'year' ? '(' + view.y + '年 연간 보기)' : '(도서 이력)';
-    document.title = '기획1부 월간계획표';
+    document.title = '도서출판본부 월간계획표';
     if (t === 'month') renderMonth();
     else if (t === 'year') renderYear();
     else renderBooks();
@@ -1185,8 +1234,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var rows = Math.ceil((first + days) / 7);
     var rowH = rows > 5 ? 24 : 29;
     var out = [];
-    out.push('<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>기획1부 월간계획표 ' + y + '-' + pad(m) + '</title><style>' + PRINT_CSS + '</style></head><body>');
-    out.push('<h1>기획1부 월간계획표 (' + y + '年 ' + pad(m) + '月)</h1><table><thead><tr>');
+    out.push('<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>도서출판본부 월간계획표 ' + y + '-' + pad(m) + '</title><style>' + PRINT_CSS + '</style></head><body>');
+    out.push('<h1>도서출판본부 월간계획표 (' + y + '年 ' + pad(m) + '月)</h1><table><thead><tr>');
     DOW.forEach(function (n, i) { out.push('<th class="' + (i === 0 ? 'sun' : i === 6 ? 'sat' : '') + '">' + n + '</th>'); });
     out.push('</tr></thead><tbody>');
     for (var r = 0; r < rows; r++) {
