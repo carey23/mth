@@ -450,6 +450,14 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 <div class="modal" id="vw" hidden>
   <div class="sheet wide" id="vwSheet" role="dialog" aria-modal="true"></div>
 </div>
+<div class="modal" id="cf" hidden>
+  <form class="sheet" id="cfForm" autocomplete="off" aria-labelledby="cfHead">
+    <h2 id="cfHead">부장 확인 비밀번호</h2>
+    <label class="f"><span id="cfDesc">부장 전용 비밀번호</span><input type="password" id="cfIn" autocomplete="off" required></label>
+    <p class="err" id="cfErr" role="alert"></p>
+    <div class="acts"><button type="submit" class="btn pri" id="cfOk">확인</button><button type="button" class="btn" id="cfCancel">취소</button></div>
+  </form>
+</div>
 <div class="modal" id="pw" hidden>
   <form class="sheet" id="pwForm" autocomplete="off" aria-labelledby="pwHead">
     <h2 id="pwHead">수정 비밀번호</h2>
@@ -1030,20 +1038,32 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       (mini ? '' : '<circle cx="24" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><circle cx="56" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><path d="M31 53 Q40 62 49 53" fill="none" stroke="' + c + '" stroke-width="3" stroke-linecap="round"/><path d="M40 63 l1.6 3.6 3.9 .4 -2.9 2.6 .8 3.8 -3.4 -2 -3.4 2 .8 -3.8 -2.9 -2.6 3.9 -.4z" fill="#f2b630" transform="translate(0 -6) scale(.9) translate(4 0)"/>') + '</svg>';
   }
   function stampEl(big, pop) { var e = h('span', { class: 'stamp' + (big ? ' big' : '') + (pop ? ' pop' : ''), title: '부장 확인 완료' }); e.innerHTML = stampSvg(!big); return e; }
+  var cfPending = null;
   function toggleConfirm(id, on) {
-    var o = orders.get(id);
-    if (!o) return;
-    if (!canWrite) { openPw(); return; }
-    if (!on && !confirm('부장 확인을 취소할까요?')) return;
-    var data = Object.assign({}, o.data, { confirmed: on, confirmedAt: on ? new Date().toISOString() : '' });
-    sb.from('book_orders').update({ data: data }).eq('id', o.id).then(function (r) {
-      if (r.error) { toast('저장하지 못했습니다. 잠시 뒤 다시 시도하세요.'); return; }
-      o.data = data;
-      toast(on ? '확인 도장을 찍었습니다.' : '확인을 취소했습니다.');
-      renderMonth();
-      openView(id, on);
-      refresh();
-    });
+    if (!orders.has(id)) return;
+    cfPending = { id: id, on: on };
+    $('cfHead').textContent = on ? '부장 확인 도장' : '부장 확인 취소';
+    $('cfDesc').textContent = '부장 전용 비밀번호 입력';
+    $('cfErr').textContent = '';
+    $('cfIn').value = '';
+    $('cf').hidden = false;
+    $('cfIn').focus();
+  }
+  function closeCf() { $('cf').hidden = true; cfPending = null; }
+  function submitCf(ev) {
+    ev.preventDefault();
+    if (!cfPending || !sb) return;
+    var c = cfPending, o = orders.get(c.id), pass = $('cfIn').value;
+    if (!o || !pass) return;
+    $('cfOk').disabled = true;
+    sb.rpc('book_confirm', { p_pass: pass, p_id: o.id, p_on: c.on }).then(function (r) {
+      $('cfOk').disabled = false;
+      if (r.error) { $('cfErr').textContent = '처리하지 못했습니다. 잠시 뒤 다시 시도하세요.'; return; }
+      if (r.data !== true) { $('cfErr').textContent = '비밀번호가 맞지 않습니다.'; $('cfIn').select(); return; }
+      closeCf();
+      toast(c.on ? '확인 도장을 찍었습니다.' : '확인을 취소했습니다.');
+      refresh().then(function () { renderMonth(); openView(c.id, c.on); });
+    }, function () { $('cfOk').disabled = false; $('cfErr').textContent = '연결하지 못했습니다. 잠시 뒤 다시 시도하세요.'; });
   }
   function vwItem(label, val) { return h('div', null, h('div', { class: 'vw-l', text: label }), h('div', { class: 'vw-v' }, val ? String(val) : h('span', { class: 'hs', text: '-' }))); }
   function openView(id, pop) {
@@ -1090,6 +1110,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     } else {
       ok.appendChild(h('div', { class: 'miss', text: '모든 항목이 입력되었습니다. 내용을 확인하셨다면 도장을 찍어 주세요.' }));
       ok.appendChild(h('div', null, h('button', { type: 'button', class: 'btn pri', text: '✅ OK 도장 찍기', onclick: function () { toggleConfirm(id, true); } })));
+      ok.appendChild(h('div', { class: 'miss', text: '부장 전용 비밀번호가 필요합니다.' }));
     }
     box.appendChild(ok);
     box.appendChild(h('div', { class: 'acts' },
@@ -1264,6 +1285,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('vw').addEventListener('mousedown', function (e) { if (e.target === $('vw')) closeView(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('vw').hidden) closeView(); });
     $('bkCompAdd').addEventListener('click', function () { $('bkComps').appendChild(compRow({})); });
+    $('cfForm').addEventListener('submit', submitCf);
+    $('cfCancel').addEventListener('click', closeCf);
+    $('cf').addEventListener('mousedown', function (e) { if (e.target === $('cf')) closeCf(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('cf').hidden) closeCf(); });
     $('edCancel').addEventListener('click', closeEditor);
     $('edDel').addEventListener('click', deleteEditor);
     $('ed').addEventListener('mousedown', function (e) { if (e.target === $('ed')) closeEditor(); });
