@@ -452,8 +452,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 </div>
 <div class="modal" id="cf" hidden>
   <form class="sheet" id="cfForm" autocomplete="off" aria-labelledby="cfHead">
-    <h2 id="cfHead">부장 확인 비밀번호</h2>
-    <label class="f"><span id="cfDesc">부장 전용 비밀번호</span><input type="password" id="cfIn" autocomplete="off" required></label>
+    <h2 id="cfHead">상무님 확인 비밀번호</h2>
+    <label class="f"><span id="cfDesc">상무님 전용 비밀번호</span><input type="password" id="cfIn" autocomplete="off" required></label>
     <p class="err" id="cfErr" role="alert"></p>
     <div class="acts"><button type="submit" class="btn pri" id="cfOk">확인</button><button type="button" class="btn" id="cfCancel">취소</button></div>
   </form>
@@ -745,7 +745,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       e.history ? h('span', { class: 'hs', text: e.history }) : null,
       (orderOf(e.id) || {}).confirmed ? miniStamp() : null);
   }
-  function miniStamp() { var s2 = h('span', { class: 'okm', title: '부장 확인 완료' }); s2.innerHTML = stampSvg(true); return s2; }
+  function miniStamp() { var s2 = h('span', { class: 'okm', title: '상무님 확인 완료' }); s2.innerHTML = stampSvg(true); return s2; }
 
   /* ---------- 비고 ---------- */
   var noteKey = '';
@@ -1033,17 +1033,17 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function stampSvg(mini) {
     var c = '#e0364c';
     return '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="40" cy="40" r="36" fill="#fff5f6" stroke="' + c + '" stroke-width="' + (mini ? 6 : 4) + '"/>' +
-      (mini ? '' : '<circle cx="40" cy="40" r="30" fill="none" stroke="' + c + '" stroke-width="1.5" stroke-dasharray="3 3"/><text x="40" y="23" text-anchor="middle" font-size="9" font-weight="700" fill="' + c + '" font-family="sans-serif">부장 확인</text>') +
+      (mini ? '' : '<circle cx="40" cy="40" r="30" fill="none" stroke="' + c + '" stroke-width="1.5" stroke-dasharray="3 3"/><text x="40" y="23" text-anchor="middle" font-size="8" font-weight="700" fill="' + c + '" font-family="sans-serif">상무님 확인</text>') +
       '<text x="40" y="' + (mini ? 50 : 45) + '" text-anchor="middle" font-size="' + (mini ? 34 : 25) + '" font-weight="900" fill="' + c + '" font-family="Arial Black,Arial,sans-serif">OK</text>' +
-      (mini ? '' : '<circle cx="24" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><circle cx="56" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><path d="M31 53 Q40 62 49 53" fill="none" stroke="' + c + '" stroke-width="3" stroke-linecap="round"/><path d="M40 63 l1.6 3.6 3.9 .4 -2.9 2.6 .8 3.8 -3.4 -2 -3.4 2 .8 -3.8 -2.9 -2.6 3.9 -.4z" fill="#f2b630" transform="translate(0 -6) scale(.9) translate(4 0)"/>') + '</svg>';
+      (mini ? '' : '<circle cx="24" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><circle cx="56" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><path d="M31 53 Q40 62 49 53" fill="none" stroke="' + c + '" stroke-width="3" stroke-linecap="round"/>') + '</svg>';
   }
-  function stampEl(big, pop) { var e = h('span', { class: 'stamp' + (big ? ' big' : '') + (pop ? ' pop' : ''), title: '부장 확인 완료' }); e.innerHTML = stampSvg(!big); return e; }
+  function stampEl(big, pop) { var e = h('span', { class: 'stamp' + (big ? ' big' : '') + (pop ? ' pop' : ''), title: '상무님 확인 완료' }); e.innerHTML = stampSvg(!big); return e; }
   var cfPending = null;
   function toggleConfirm(id, on) {
     if (!orders.has(id)) return;
     cfPending = { id: id, on: on };
-    $('cfHead').textContent = on ? '부장 확인 도장' : '부장 확인 취소';
-    $('cfDesc').textContent = '부장 전용 비밀번호 입력';
+    $('cfHead').textContent = on ? '상무님 확인 도장' : '상무님 확인 취소';
+    $('cfDesc').textContent = '상무님 전용 비밀번호 입력';
     $('cfErr').textContent = '';
     $('cfIn').value = '';
     $('cf').hidden = false;
@@ -1102,7 +1102,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var miss = missingFields(d);
     var ok = h('div', { class: 'vw-ok' + (d.confirmed ? ' done' : '') });
     if (d.confirmed) {
-      ok.appendChild(h('div', null, h('b', { text: '부장 확인 완료' }), d.confirmedAt ? ' · ' + String(new Date(d.confirmedAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })) : ''));
+      ok.appendChild(h('div', null, h('b', { text: '상무님 확인 완료' }), d.confirmedAt ? ' · ' + String(new Date(d.confirmedAt).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })) : ''));
       ok.appendChild(h('div', null, h('button', { type: 'button', class: 'mini', text: '확인 취소', onclick: function () { toggleConfirm(id, false); } })));
     } else if (!orders.has(id) || miss.length) {
       var mm = h('div', { class: 'miss' }, '확인 도장은 입력이 모두 끝나야 찍을 수 있습니다. 미입력: ', h('b', { text: (orders.has(id) ? miss : REQ_FIELDS.map(function (f) { return f[1]; })).join(', ') }));
@@ -1110,7 +1110,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     } else {
       ok.appendChild(h('div', { class: 'miss', text: '모든 항목이 입력되었습니다. 내용을 확인하셨다면 도장을 찍어 주세요.' }));
       ok.appendChild(h('div', null, h('button', { type: 'button', class: 'btn pri', text: '✅ OK 도장 찍기', onclick: function () { toggleConfirm(id, true); } })));
-      ok.appendChild(h('div', { class: 'miss', text: '부장 전용 비밀번호가 필요합니다.' }));
+      ok.appendChild(h('div', { class: 'miss', text: '상무님 전용 비밀번호가 필요합니다.' }));
     }
     box.appendChild(ok);
     box.appendChild(h('div', { class: 'acts' },
@@ -1193,7 +1193,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       saving = false;
       $('edSave').disabled = false;
       closeEditor();
-      if (okBook) toast(confirmReset ? '저장했습니다. 내용이 바뀌어 부장 확인은 해제되었습니다.' : '저장했습니다.');
+      if (okBook) toast(confirmReset ? '저장했습니다. 내용이 바뀌어 상무님 확인은 해제되었습니다.' : '저장했습니다.');
       confirmReset = false;
       refresh();
     }, function (e) {
@@ -1361,7 +1361,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
         o += '<div class="c"><b>' + esc(c.name) + '</b>' + (meta.length ? ' — ' + esc(meta.join(' · ')) : '') + '</div>';
       });
     }
-    if (d.confirmed) o += '<div class="f" style="color:#e0364c;font-weight:700">✔ 부장 확인 완료' + (d.confirmedAt ? ' · ' + esc(String(d.confirmedAt).slice(0, 10).replace(/-/g, '.')) : '') + '</div>';
+    if (d.confirmed) o += '<div class="f" style="color:#e0364c;font-weight:700">✔ 상무님 확인 완료' + (d.confirmedAt ? ' · ' + esc(String(d.confirmedAt).slice(0, 10).replace(/-/g, '.')) : '') + '</div>';
     if ((d.attachments || []).length) o += '<div class="f">첨부: ' + d.attachments.map(function (a) { return esc(a.name); }).join(', ') + '</div>';
     return o + '</div>';
   }
