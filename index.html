@@ -151,6 +151,11 @@ h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-sp
 .sum b { color: var(--ink); font-weight: 700; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 #legend, #legendDes { flex: 1 1 100%; }
+.fbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin: 4px 0 10px; }
+.fbar label { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.fbar select { padding: 6px 28px 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-weight: 500; min-width: 150px; }
+.fbar select.on { border-color: var(--accent); background: var(--tint); font-weight: 700; }
+.fbar[hidden] { display: none; }
 .lgl { font-size: 12px; font-weight: 700; color: var(--muted); margin-right: 2px; }
 .lgl.sp { margin-left: 10px; }
 .chip.dept { font-weight: 700; background: var(--bg); }
@@ -366,7 +371,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       <button type="button" id="tabYear" aria-pressed="false">연간</button>
       <button type="button" id="tabBooks" aria-pressed="false">도서 이력</button>
     </div>
-    <div class="stat-wrap"><label class="tog" for="mgrFilter">담당자 <select id="mgrFilter"></select></label><div class="status" id="status" role="status">연결 중…</div><button type="button" class="ghost" id="btnLock">수정하려면 비밀번호 입력</button></div>
+    <div class="stat-wrap"><div class="status" id="status" role="status">연결 중…</div><button type="button" class="ghost" id="btnLock">수정하려면 비밀번호 입력</button></div>
   </div>
 
   <div class="nav" id="nav">
@@ -375,11 +380,14 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <button type="button" class="ghost" id="goToday">오늘</button>
   </div>
 
+  <div class="fbar" id="fbar">
+    <label>담당자 <select id="mgrFilter"></select></label>
+    <label>조판자 <select id="desFilter"></select></label>
+    <button type="button" class="ghost" id="fClear" hidden>필터 해제</button>
+  </div>
   <section id="vMonth">
     <div class="meta">
       <div class="sum" id="sum"></div>
-      <div class="legend" id="legend" role="group" aria-label="담당자별 보기"></div>
-      <div class="legend" id="legendDes" role="group" aria-label="조판자별 보기"></div>
       <div class="mtools">
         <label class="tog" for="cmp"><input type="checkbox" id="cmp"> 한 줄로 보기</label>
         <button type="button" class="ghost" id="btnPrintOrders">발주도서 인쇄</button>
@@ -746,29 +754,31 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     sum.appendChild(h('span', null, '이번 달 ', h('b', { text: me.length + '건' })));
     TYPES.forEach(function (t) { if (cnt[t.k]) sum.appendChild(document.createTextNode(' · ' + t.k + ' ' + cnt[t.k])); });
 
-    var lg = $('legend');
-    lg.textContent = '';
-    lg.appendChild(h('span', { class: 'lgl', text: '담당자' }));
-    Object.keys(DEPTS).forEach(function (d) {
-      var dc = 0;
-      DEPTS[d].forEach(function (n) { dc += byMgr[n] || 0; });
-      lg.appendChild(h('button', { type: 'button', class: 'chip dept', 'aria-pressed': filterMgr === 'dept:' + d ? 'true' : 'false', style: '--h:235', 'data-mgr': 'dept:' + d }, d, h('em', { text: String(dc) })));
-      MANAGERS.forEach(function (n) {
-        if (DEPTS[d].indexOf(n) < 0) return;
-        lg.appendChild(h('button', { type: 'button', class: 'chip', 'aria-pressed': filterMgr === n ? 'true' : 'false', style: '--h:' + mHue(n), 'data-mgr': n },
-          h('i'), n, h('em', { text: String(byMgr[n] || 0) })));
-      });
-    });
-    if (byMgr['']) lg.appendChild(h('button', { type: 'button', class: 'chip', 'aria-pressed': filterMgr === '__none' ? 'true' : 'false', 'data-mgr': '__none' }, '미정', h('em', { text: String(byMgr['']) })));
-    var ld = $('legendDes');
-    ld.textContent = '';
-    ld.appendChild(h('span', { class: 'lgl', text: '조판자' }));
-    DESIGNERS.forEach(function (n) {
-      ld.appendChild(h('button', { type: 'button', class: 'chip', 'aria-pressed': filterDes === n ? 'true' : 'false', style: dStyle(n), 'data-des': n },
-        h('i'), n, h('em', { text: String(byDes[n] || 0) })));
-    });
-    if (byDes['']) ld.appendChild(h('button', { type: 'button', class: 'chip', 'aria-pressed': filterDes === '__none' ? 'true' : 'false', 'data-des': '__none' }, '미정', h('em', { text: String(byDes['']) })));
+    updateFilterUi(byMgr, byDes);
     renderNote();
+  }
+  function updateFilterUi(byMgr, byDes) {
+    Array.prototype.forEach.call($('mgrFilter').options, function (o) {
+      var v = o.value, c = null;
+      if (v === '__none') c = byMgr[''] || 0;
+      else if (v.indexOf('dept:') === 0) { c = 0; (DEPTS[v.slice(5)] || []).forEach(function (n) { c += byMgr[n] || 0; }); }
+      else if (v) c = byMgr[v] || 0;
+      var base = o.getAttribute('data-base') || o.textContent;
+      o.setAttribute('data-base', base);
+      o.textContent = c == null ? base : base + (c ? ' (' + c + ')' : '');
+    });
+    Array.prototype.forEach.call($('desFilter').options, function (o) {
+      var v = o.value, c = null;
+      if (v === '__none') c = byDes[''] || 0; else if (v) c = byDes[v] || 0;
+      var base = o.getAttribute('data-base') || o.textContent;
+      o.setAttribute('data-base', base);
+      o.textContent = c == null ? base : base + (c ? ' (' + c + ')' : '');
+    });
+    $('mgrFilter').value = filterMgr;
+    $('desFilter').value = filterDes;
+    $('mgrFilter').classList.toggle('on', !!filterMgr);
+    $('desFilter').classList.toggle('on', !!filterDes);
+    $('fClear').hidden = !(filterMgr || filterDes);
   }
   function entryEl(e) {
     var dim = !mgrMatch(e.id) || !desMatch(e);
@@ -898,7 +908,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     });
     var q = query.replace(/\s+/g, '').toLowerCase();
     var arr = Object.keys(groups).map(function (k) { return groups[k]; }).filter(function (g) {
-      if (filterMgr && !g.items.some(function (i) { return mgrMatch(i.id); })) return false;
+      if ((filterMgr || filterDes) && !g.items.some(function (i) { return mgrMatch(i.id) && desMatch(i); })) return false;
       if (typeFilter && !g.items.some(function (i) { return i.type === typeFilter; })) return false;
       if (!q) return true;
       return g.title.replace(/\s+/g, '').toLowerCase().indexOf(q) >= 0 || g.items.some(function (i) { return i.designer.indexOf(query.trim()) >= 0 || orderHay(i.id).indexOf(q) >= 0; });
@@ -930,6 +940,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('vYear').hidden = t !== 'year';
     $('vBooks').hidden = t !== 'books';
     $('nav').hidden = t === 'books';
+    $('fbar').hidden = t === 'year';
     $('tabMonth').setAttribute('aria-pressed', String(t === 'month'));
     $('tabYear').setAttribute('aria-pressed', String(t === 'year'));
     $('tabBooks').setAttribute('aria-pressed', String(t === 'books'));
@@ -979,13 +990,18 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     sel.appendChild(h('option', { value: '', text: '미정' }));
     DESIGNERS.forEach(function (n) { sel.appendChild(h('option', { value: n, text: n })); });
     var mf = $('mgrFilter');
+    var df = $('desFilter');
+    df.appendChild(h('option', { value: '', text: '전체' }));
+    DESIGNERS.forEach(function (n) { df.appendChild(h('option', { value: n, text: n })); });
+    df.appendChild(h('option', { value: '__none', text: '미정' }));
     mf.appendChild(h('option', { value: '', text: '전체' }));
-    mf.appendChild(h('option', { value: '__none', text: '담당 미정' }));
+    
     Object.keys(DEPTS).forEach(function (d) {
       var g = h('optgroup', { label: d }, h('option', { value: 'dept:' + d, text: d + ' 전체' }));
       MANAGERS.forEach(function (n) { if (DEPTS[d].indexOf(n) >= 0) g.appendChild(h('option', { value: n, text: n })); });
       mf.appendChild(g);
     });
+    mf.appendChild(h('option', { value: '__none', text: '담당 미정' }));
     var cv = $('bkCover');
     cv.appendChild(h('option', { value: '', text: '미정' }));
     DESIGNERS.forEach(function (n) { cv.appendChild(h('option', { value: n, text: n })); });
@@ -1285,6 +1301,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('btnPrint').addEventListener('click', printMonth);
     $('btnPrintOrders').addEventListener('click', printOrders);
     $('mgrFilter').addEventListener('change', function (e) { filterMgr = e.target.value; renderMonth(); if (view.tab === 'books') renderBooks(); });
+    $('desFilter').addEventListener('change', function (e) { filterDes = e.target.value; renderMonth(); if (view.tab === 'books') renderBooks(); });
+    $('fClear').addEventListener('click', function () { filterMgr = ''; filterDes = ''; renderMonth(); if (view.tab === 'books') renderBooks(); });
     $('edDes').addEventListener('change', toggleExt);
     $('tabMonth').addEventListener('click', function () { go({ tab: 'month' }); });
     $('tabYear').addEventListener('click', function () { go({ tab: 'year' }); });
@@ -1308,21 +1326,6 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       if (ent) { openView(ent.getAttribute('data-id')); return; }
       var cell = e.target.closest('.day[data-date]');
       if (cell) openEditor(null, cell.getAttribute('data-date'));
-    });
-    $('legend').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-mgr]');
-      if (!b) return;
-      var v = b.getAttribute('data-mgr');
-      filterMgr = filterMgr === v ? '' : v;
-      $('mgrFilter').value = filterMgr;
-      renderMonth();
-    });
-    $('legendDes').addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-des]');
-      if (!b) return;
-      var v = b.getAttribute('data-des');
-      filterDes = filterDes === v ? '' : v;
-      renderMonth();
     });
     $('yearGrid').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-go]');
