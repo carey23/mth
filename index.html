@@ -456,9 +456,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       </div>
       <div class="bk-row">
         <label class="f"><span>페이지</span><span class="sfx"><input type="number" id="bkPages" min="0"><b>p</b></span></label>
-        <label class="f"><span>페이지 증감 (개정판 대비)</span><span class="sfx"><input type="number" id="bkPageDelta" step="1" placeholder="예: 16 또는 -8"><b>p</b></span></label>
+        <label class="f"><span>페이지 증감 (이전판 대비)</span><span class="sfx"><input type="number" id="bkPageDelta" step="1" placeholder="예: 16 또는 -8"><b>p</b></span></label>
         <label class="f"><span>정가</span><span class="sfx"><input type="number" id="bkPrice" min="0"><b>원</b></span></label>
-        <label class="f"><span>정가 증감 (개정판 대비)</span><span class="sfx"><input type="number" id="bkPriceDelta" step="1" placeholder="예: 2000 또는 -1000"><b>원</b></span></label>
+        <label class="f"><span>정가 증감 (이전판 대비)</span><span class="sfx"><input type="number" id="bkPriceDelta" step="1" placeholder="예: 2000 또는 -1000"><b>원</b></span></label>
       </div>
       <datalist id="bkFmtList"></datalist><datalist id="bkMethodList"></datalist>
       <label class="f"><span>도서 상세 내용</span><textarea id="bkDetails" rows="3" placeholder="기획 의도, 구성, 참고 사항 등"></textarea></label>
@@ -1119,7 +1119,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var t = fmtDelta(v, unit);
     if (!t) return '';
     var c = deltaCls(v);
-    return ' (개정판 대비 <span style="font-weight:700' + (c === ' dn' ? ';color:#d8344a' : c === ' up' ? ';color:#2f55c8' : '') + '">' + esc(t) + '</span>)';
+    return ' (이전판 대비 <span style="font-weight:700' + (c === ' dn' ? ';color:#d8344a' : c === ' up' ? ';color:#2f55c8' : '') + '">' + esc(t) + '</span>)';
   }
   function parseDelta(x) {
     if (x === '' || x == null) return '';
@@ -1183,8 +1183,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var fm = /^(.*?)\s*[(（](.*)[)）]\s*$/.exec(d.bookFormat || '');
     var fmtNode = d.bookFormat ? h('span', null, fm ? fm[1] : d.bookFormat, fm ? h('small', { class: 'vw-s', text: fm[2] }) : null) : null;
     var pd = fmtDelta(d.pageDelta, 'p'), prd = fmtDelta(d.priceDelta, '원');
-    var pageNode = (d.pageCount || pd) ? h('span', null, d.pageCount ? Number(d.pageCount).toLocaleString() + 'p' : '-', pd ? h('small', { class: 'vw-s' + deltaCls(d.pageDelta), text: '개정판 대비 ' + pd }) : null) : null;
-    var priceNode = (d.listPrice || prd) ? h('span', null, d.listPrice ? Number(d.listPrice).toLocaleString() + '원' : '-', prd ? h('small', { class: 'vw-s' + deltaCls(d.priceDelta), text: '개정판 대비 ' + prd }) : null) : null;
+    var pageNode = (d.pageCount || pd) ? h('span', null, d.pageCount ? Number(d.pageCount).toLocaleString() + 'p' : '-', pd ? h('small', { class: 'vw-s' + deltaCls(d.pageDelta), text: '이전판 대비 ' + pd }) : null) : null;
+    var priceNode = (d.listPrice || prd) ? h('span', null, d.listPrice ? Number(d.listPrice).toLocaleString() + '원' : '-', prd ? h('small', { class: 'vw-s' + deltaCls(d.priceDelta), text: '이전판 대비 ' + prd }) : null) : null;
     box.appendChild(h('div', { class: 'vw-sec', text: '제작 사양' }));
     box.appendChild(h('div', { class: 'vw-grid' },
       vwItem('판형', fmtNode), vwItem('제작방식', d.productionMethod), vwItem('제작부수', n(d.printRun, '부')), vwItem('판/쇄', d.edition),
