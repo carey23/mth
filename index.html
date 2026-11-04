@@ -356,6 +356,11 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .vw-grid > div { padding: 8px 12px; border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); min-width: 0; }
 .vw-grid .vw-v { font-size: 15.5px; }
 .vw-sec { font-size: 13.5px; font-weight: 700; color: var(--muted); margin: 6px 0 -4px; }
+.vw-list { display: flex; flex-direction: column; gap: 3px; font-size: 15px; line-height: 1.55; }
+.vw-li { display: flex; gap: 8px; }
+.vw-li .no { flex: none; min-width: 1.7em; font-weight: 700; color: var(--accent); }
+.vw-gap { height: 6px; }
+.vw-hist { white-space: pre-wrap; font-size: 14px; line-height: 1.7; background: var(--bg); border: 1px solid var(--hair); border-radius: 10px; padding: 10px 14px; font-variant-numeric: tabular-nums; }
 .vw-txt { white-space: pre-wrap; font-size: 15px; line-height: 1.6; }
 .vw-comp { background: var(--bg); border: 1px solid var(--hair); border-radius: 10px; padding: 8px 12px; }
 .vw-comp a, .vw-comp b { font-size: 15px; font-weight: 700; color: var(--accent); text-decoration: none; }
@@ -450,7 +455,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       <div class="bk-row">
         <label class="f"><span>판형</span><input type="text" id="bkFmt" list="bkFmtList" placeholder="선택하거나 직접 입력"></label>
         <label class="f"><span>제작방식</span><input type="text" id="bkMethod" list="bkMethodList" placeholder="선택하거나 직접 입력"></label>
-        <label class="f"><span>제작부수</span><input type="number" id="bkRun" min="0"></label>
+        <label class="f"><span>제작부수</span><span class="sfx"><input type="number" id="bkRun" min="0"><b>부</b></span></label>
+        <label class="f"><span>이전판 제작부수</span><span class="sfx"><input type="number" id="bkPrevRun" min="0"><b>부</b></span></label>
         <label class="f"><span>판/쇄</span><input type="text" id="bkEd" placeholder="예: 1판 2쇄"></label>
         <label class="f"><span>작업툴</span><select id="bkTool"></select></label>
       </div>
@@ -461,7 +467,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
         <label class="f"><span>정가 증감 (이전판 대비)</span><span class="sfx"><input type="number" id="bkPriceDelta" step="1" placeholder="예: 2000 또는 -1000"><b>원</b></span></label>
       </div>
       <datalist id="bkFmtList"></datalist><datalist id="bkMethodList"></datalist>
-      <label class="f"><span>도서 상세 내용</span><textarea id="bkDetails" rows="3" placeholder="기획 의도, 구성, 참고 사항 등"></textarea></label>
+      <label class="f"><span>도서 상세 내용 <small style="font-weight:400">(Enter를 누르면 다음 번호가 자동으로 붙습니다)</small></span><textarea id="bkDetails" rows="5" placeholder="1. 이론 및 연습문제 구성&#10;2. 연 6회 시험&#10;3. CBT 시험으로 출제"></textarea></label>
+      <label class="f"><span>인쇄부수 이력 <small style="font-weight:400">(Enter를 누르면 다음 차수가 자동으로 붙습니다)</small></span><textarea id="bkHistory" rows="7" placeholder="5차) 14.10. 1000부&#10;6차) 15.11. 700부&#10;14차) 23.10. 표지갈이(321부)&#10;16차) 24.10. 500부 +표지갈이(164부) [228부(폐기)]" style="font-variant-numeric:tabular-nums"></textarea></label>
       <div class="f"><span>경쟁사 (도서명 / 링크 / 정가 / 페이지 / 발행일)</span><div id="bkComps" style="display:flex;flex-direction:column;gap:8px"></div><div><button type="button" class="mini" id="bkCompAdd">+ 경쟁사 추가</button></div></div>
       <div class="f"><span>첨부파일 (최대 5개, 파일당 2MB 이하)</span><div id="bkAttList"></div><input type="file" id="bkAttNew" multiple></div>
     </div>
@@ -589,7 +596,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function orderOf(id) { var r = orders.get(id); return r ? r.data : null; }
   function orderHay(id) {
     var d = orderOf(id); if (!d) return '';
-    return [d.author, d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
+    return [d.author, d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, d.printHistory, (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
   }
 
   function holiday(y, m, d) {
@@ -1028,6 +1035,26 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     BOOK_FORMATS.forEach(function (n) { $('bkFmtList').appendChild(h('option', { value: n })); });
     METHODS.forEach(function (n) { $('bkMethodList').appendChild(h('option', { value: n })); });
   }
+  function bindAutoList(el, re, next, first) {
+    el.addEventListener('focus', function () { if (first && !el.value) { el.value = first; el.setSelectionRange(first.length, first.length); } });
+    el.addEventListener('blur', function () { if (first && el.value.trim() === first.trim()) el.value = ''; });
+    el.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.isComposing || e.shiftKey) return;
+      var pos = el.selectionStart, val = el.value;
+      if (pos !== el.selectionEnd) return;
+      var ls = val.lastIndexOf('\n', pos - 1) + 1;
+      var line = val.slice(ls, pos);
+      var m = re.exec(line);
+      if (!m) return;
+      e.preventDefault();
+      if (line.length === m[0].length) {            // 번호만 남은 빈 줄에서 Enter: 번호를 지우고 목록을 끝낸다
+        el.setSelectionRange(ls, pos);
+        el.setRangeText('', ls, pos, 'end');
+        return;
+      }
+      el.setRangeText('\n' + next(m), pos, pos, 'end');
+    });
+  }
   function compRow(c) {
     c = c || {};
     var row = h('div', { class: 'cp-row' },
@@ -1086,6 +1113,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('bkFmt').value = bd.bookFormat || '';
     $('bkMethod').value = bd.productionMethod || '';
     $('bkRun').value = bd.printRun || '';
+    $('bkPrevRun').value = bd.prevRun || '';
     $('bkEd').value = bd.edition || '';
     $('bkPages').value = bd.pageCount || '';
     $('bkPageDelta').value = parseDelta(bd.pageDelta);
@@ -1093,6 +1121,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('bkTool').value = bd.workTool || 'InD';
     $('bkPrice').value = bd.listPrice || '';
     $('bkDetails').value = bd.details || '';
+    $('bkHistory').value = bd.printHistory || '';
     $('bkComps').textContent = '';
     (bd.competitors && bd.competitors.length ? bd.competitors : [{}]).forEach(function (c) { $('bkComps').appendChild(compRow(c)); });
     edAtt = (bd.attachments || []).slice();
@@ -1163,6 +1192,16 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       refresh().then(function () { renderMonth(); openView(c.id, c.on); });
     }, function () { $('cfOk').disabled = false; $('cfErr').textContent = '연결하지 못했습니다. 잠시 뒤 다시 시도하세요.'; });
   }
+  function listEl(text) {
+    var box = h('div', { class: 'vw-list' });
+    String(text).split('\n').forEach(function (ln) {
+      var m = /^\s*(\d+)\.\s+(.*)$/.exec(ln);
+      if (m) box.appendChild(h('div', { class: 'vw-li' }, h('span', { class: 'no', text: m[1] + '.' }), h('span', { text: m[2] })));
+      else if (ln.trim()) box.appendChild(h('div', { class: 'vw-li' }, h('span', { class: 'no' }), h('span', { text: ln })));
+      else box.appendChild(h('div', { class: 'vw-gap' }));
+    });
+    return box;
+  }
   function vwItem(label, val) { return h('div', null, h('div', { class: 'vw-l', text: label }), h('div', { class: 'vw-v' }, val ? val : h('span', { class: 'hs', text: '-' }))); }
   function openView(id, pop) {
     var e = entries.get(id);
@@ -1185,11 +1224,13 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var pd = fmtDelta(d.pageDelta, 'p'), prd = fmtDelta(d.priceDelta, '원');
     var pageNode = (d.pageCount || pd) ? h('span', null, d.pageCount ? Number(d.pageCount).toLocaleString() + 'p' : '-', pd ? h('small', { class: 'vw-s' + deltaCls(d.pageDelta), text: '이전판 대비 ' + pd }) : null) : null;
     var priceNode = (d.listPrice || prd) ? h('span', null, d.listPrice ? Number(d.listPrice).toLocaleString() + '원' : '-', prd ? h('small', { class: 'vw-s' + deltaCls(d.priceDelta), text: '이전판 대비 ' + prd }) : null) : null;
+    var runNode = (d.printRun || d.prevRun) ? h('span', null, d.printRun ? Number(d.printRun).toLocaleString() + '부' : '-', d.prevRun ? h('small', { class: 'vw-s', text: '이전판 ' + Number(d.prevRun).toLocaleString() + '부' }) : null) : null;
     box.appendChild(h('div', { class: 'vw-sec', text: '제작 사양' }));
     box.appendChild(h('div', { class: 'vw-grid' },
-      vwItem('판형', fmtNode), vwItem('제작방식', d.productionMethod), vwItem('제작부수', n(d.printRun, '부')), vwItem('판/쇄', d.edition),
+      vwItem('판형', fmtNode), vwItem('제작방식', d.productionMethod), vwItem('제작부수', runNode), vwItem('판/쇄', d.edition),
       vwItem('페이지', pageNode), vwItem('작업툴', d.workTool), vwItem('정가', priceNode), vwItem('지류', d.paperType)));
-    if (d.details) { box.appendChild(h('div', { class: 'vw-sec', text: '도서 상세 내용' })); box.appendChild(h('div', { class: 'vw-txt', text: d.details })); }
+    if (d.details) { box.appendChild(h('div', { class: 'vw-sec', text: '도서 상세 내용' })); box.appendChild(listEl(d.details)); }
+    if (d.printHistory) { box.appendChild(h('div', { class: 'vw-sec', text: '인쇄부수 이력' })); box.appendChild(h('div', { class: 'vw-hist', text: d.printHistory })); }
     if ((d.competitors || []).length) {
       box.appendChild(h('div', { class: 'vw-sec', text: '경쟁사' }));
       d.competitors.forEach(function (c) {
@@ -1247,11 +1288,11 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     return {
       author: v('bkAuthor'), manager: v('bkMgr'), coverDesigner: v('bkCover'), publishDate: v('bkPub'), paperType: v('bkPaper'), bookFormat: v('bkFmt'), productionMethod: v('bkMethod'),
       printRun: v('bkRun') ? Number(v('bkRun')) : null, edition: v('bkEd'), pageCount: v('bkPages') ? Number(v('bkPages')) : null, pageDelta: v('bkPageDelta') === '' ? '' : Number(v('bkPageDelta')), priceDelta: v('bkPriceDelta') === '' ? '' : Number(v('bkPriceDelta')),
-      workTool: v('bkTool') || 'InD', listPrice: v('bkPrice') ? Number(v('bkPrice')) : null, details: v('bkDetails'), competitors: comps
+      workTool: v('bkTool') || 'InD', listPrice: v('bkPrice') ? Number(v('bkPrice')) : null, details: $('bkDetails').value.replace(/\s+$/, ''), printHistory: $('bkHistory').value.replace(/\s+$/, ''), prevRun: v('bkPrevRun') ? Number(v('bkPrevRun')) : null, competitors: comps
     };
   }
   function bookHasContent(b, atts) {
-    return !!(b.author || b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.edition || b.pageCount || (b.pageDelta !== '') || (b.priceDelta !== '') || b.listPrice || b.details || b.competitors.length || atts.length);
+    return !!(b.author || b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.prevRun || b.printHistory || b.edition || b.pageCount || (b.pageDelta !== '') || (b.priceDelta !== '') || b.listPrice || b.details || b.competitors.length || atts.length);
   }
   // 발주도서 정보 저장 (book_orders 테이블, 도서 항목 id로 연결)
   var confirmReset = false;
@@ -1387,6 +1428,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('edForm').addEventListener('submit', saveEditor);
     $('vw').addEventListener('mousedown', function (e) { if (e.target === $('vw')) closeView(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('vw').hidden) closeView(); });
+    bindAutoList($('bkDetails'), /^(\s*)(\d+)\.\s/, function (m) { return m[1] + (Number(m[2]) + 1) + '. '; }, '1. ');
+    bindAutoList($('bkHistory'), /^(\s*)(\d+)차\)\s?/, function (m) { return m[1] + (Number(m[2]) + 1) + '차) '; }, '');
     $('bkCompAdd').addEventListener('click', function () { $('bkComps').appendChild(compRow({})); });
     $('cfForm').addEventListener('submit', submitCf);
     $('cfCancel').addEventListener('click', closeCf);
@@ -1449,9 +1492,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var t = function (v) { return v ? esc(v) : '-'; };
     var o = '<div class="b"><h2>[' + esc(e.type || '') + '] ' + esc(e.title) + '</h2>' + (d.author ? '<div class="sub" style="font-size:11pt;color:#000;font-weight:700">저자 ' + esc(d.author) + '</div>' : '') + '<div class="sub">' + esc('표지 : ' + (d.coverDesigner || '미정') + ' · 내지 : ' + (e.designer ? (e.designer === '외주' && e.ext ? '외주 ' + e.ext : e.designer) : '미정')) + (e.history ? ' · ' + esc(e.history) : '') + '</div>';
     o += '<div class="k"><div><div class="l">담당자</div><div class="v">' + t(d.manager) + '</div></div><div><div class="l">출간일</div><div class="v">' + esc(fmtDot(e.date)) + '</div></div><div><div class="l">발행일</div><div class="v">' + (d.publishDate ? esc(fmtDot(d.publishDate)) : '-') + '</div></div></div>';
-    o += '<table><tr><td><div class="l">판형</div><b>' + t(d.bookFormat) + '</b></td><td><div class="l">제작방식</div><b>' + t(d.productionMethod) + '</b></td><td><div class="l">제작부수</div><b>' + n(d.printRun, '부') + '</b></td><td><div class="l">판/쇄</div><b>' + t(d.edition) + '</b></td></tr>' +
+    o += '<table><tr><td><div class="l">판형</div><b>' + t(d.bookFormat) + '</b></td><td><div class="l">제작방식</div><b>' + t(d.productionMethod) + '</b></td><td><div class="l">제작부수</div><b>' + n(d.printRun, '부') + (d.prevRun ? ' (이전판 ' + Number(d.prevRun).toLocaleString() + '부)' : '') + '</b></td><td><div class="l">판/쇄</div><b>' + t(d.edition) + '</b></td></tr>' +
       '<tr><td><div class="l">페이지</div><b>' + n(d.pageCount, 'p') + deltaPrint(d.pageDelta, 'p') + '</b></td><td><div class="l">작업툴</div><b>' + t(d.workTool) + '</b></td><td><div class="l">정가</div><b>' + n(d.listPrice, '원') + deltaPrint(d.priceDelta, '원') + '</b></td><td><div class="l">지류</div><b>' + t(d.paperType) + '</b></td></tr></table>';
     if (d.details) o += '<div class="t">도서 상세 내용</div><div class="tx">' + esc(d.details) + '</div>';
+    if (d.printHistory) o += '<div class="t">인쇄부수 이력</div><div class="tx" style="font-size:10pt">' + esc(d.printHistory) + '</div>';
     if ((d.competitors || []).length) {
       o += '<div class="t">경쟁사</div>';
       d.competitors.forEach(function (c) {
