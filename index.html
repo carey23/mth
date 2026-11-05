@@ -198,6 +198,8 @@ h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-sp
 .t-cov { color: var(--accent); }
 .dz { font-weight: 700; font-size: 12px; color: hsl(var(--h) var(--ds) var(--dl)); white-space: nowrap; }
 .dz.none { color: var(--muted); font-weight: 400; }
+.dz.dot { display: inline-flex; align-items: center; justify-content: center; min-width: 25px; height: 25px; padding: 0 3px; box-sizing: border-box; border-radius: 50%; font-size: 10.5px; letter-spacing: -.3px; line-height: 1; background: hsl(var(--h) var(--ds) 50% / .13); border: 1.5px solid hsl(var(--h) var(--ds) var(--dl)); }
+.dz.dot.none { background: transparent; border: 1.5px dashed var(--hair); font-weight: 400; }
 .hs { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; }
 
 /* 비고 */
@@ -277,6 +279,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 2px; }
 .acts .sp { flex: 1; }
 .btn { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 20px; }
+.btn.okstamp, .btn.okstamp:hover { background: #e03131; border-color: #e03131; color: #fff; font-weight: 700; }
 .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
 .btn.del { color: var(--err); border-color: var(--err); }
 .btn.del.arm { background: var(--err); color: var(--bg); }
@@ -630,8 +633,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function desMatch(e) { if (!filterDes) return true; return filterDes === '__none' ? !e.designer : e.designer === filterDes; }
   function mHue(n) { var i = MANAGERS.indexOf(n); return MHUES[i < 0 ? 0 : i % MHUES.length]; }
   function mtag(name) {
-    if (!name) return h('span', { class: 'dz none', text: '[미정]', title: '편집 담당자 미정' });
-    return h('span', { class: 'dz', style: '--h:' + mHue(name), text: '[' + name.slice(1) + ']', title: '담당 ' + name });
+    if (!name) return h('span', { class: 'dz dot none', text: '미정', title: '편집 담당자 미정' });
+    return h('span', { class: 'dz dot', style: '--h:' + mHue(name), text: name.slice(1), title: '담당 ' + name });
   }
   function dStyle(name) { return '--h:' + hue(name) + (name === '외주' ? ';--ds:10%' : ''); }
 
@@ -1235,6 +1238,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     box.textContent = '';
     var n = function (v, suf) { return v ? Number(v).toLocaleString() + suf : ''; };
     box.appendChild(h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, typeTag(e.type), e.history ? h('small', { class: 'hs', text: e.history }) : null,
+      d.noStamp ? h('span', { class: 'vw-nostamp', style: 'margin-left:0', text: '무인지 도서' }) : null,
       d.confirmed ? h('span', { style: 'margin-left:auto' }, stampEl(true, pop)) : null));
     box.appendChild(h('h2', { text: e.title, style: 'font-size:22px;margin:0' }));
     if (d.author) box.appendChild(h('div', { class: 'vw-author' }, h('span', { text: '저자' }), d.author));
@@ -1287,7 +1291,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       ok.appendChild(mm);
     } else {
       ok.appendChild(h('div', { class: 'miss', text: '모든 항목이 입력되었습니다. 내용을 확인하셨다면 도장을 찍어 주세요.' }));
-      ok.appendChild(h('div', null, h('button', { type: 'button', class: 'btn pri', text: '✅ OK 도장 찍기', onclick: function () { toggleConfirm(id, true); } })));
+      ok.appendChild(h('div', null, h('button', { type: 'button', class: 'btn okstamp', text: '✅ OK 도장 찍기', onclick: function () { toggleConfirm(id, true); } })));
       ok.appendChild(h('div', { class: 'miss', text: '상무님 전용 비밀번호가 필요합니다.' }));
     }
     box.appendChild(ok);
