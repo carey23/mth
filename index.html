@@ -205,8 +205,16 @@ h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-sp
 /* 비고 */
 .note { display: flex; border: 1px solid var(--hair); border-radius: 14px; background: var(--surface); box-shadow: var(--sh); overflow: hidden; }
 .note label { flex: none; width: 4.8rem; display: flex; align-items: center; justify-content: center; font-weight: 700; letter-spacing: 0.3em; color: var(--muted); background: var(--head); }
-.note textarea { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; resize: none; padding: 10px 14px; min-height: 4.6rem; line-height: 1.65; overflow: hidden; }
-.note textarea:focus-visible { outline-offset: -2px; border-radius: 0 14px 14px 0; }
+.note .nb { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.note .nt { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; padding: 10px 14px; min-height: 4.6rem; line-height: 1.65; outline: none; white-space: pre-wrap; overflow-wrap: anywhere; cursor: text; }
+.note .nt:empty::before { content: attr(data-ph); color: var(--muted); pointer-events: none; }
+.note .nt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 0 0 14px 0; }
+.nfmt { display: flex; align-items: center; gap: 6px; padding: 6px 10px 0 12px; }
+.nfmt[hidden] { display: none; }
+.nfmt button { font: inherit; cursor: pointer; border: 1px solid var(--hair); background: var(--surface); color: var(--ink); border-radius: 8px; height: 26px; min-width: 26px; padding: 0 8px; font-size: 12.5px; }
+.nfmt button.b { font-weight: 800; }
+.nfmt button.c { width: 22px; min-width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--hair); }
+.nfmt .sp { width: 1px; height: 16px; background: var(--hair); margin: 0 2px; }
 .cal.joined { margin-bottom: 12px; }
 
 .empty { color: var(--muted); font-size: 13px; padding: 2px 0; }
@@ -309,7 +317,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   .day.idle .dn .add { top: 50%; transform: translateY(-50%); }
   .note { flex-direction: column; }
   .note label { width: auto; padding: 7px 12px; justify-content: flex-start; letter-spacing: 0.15em; }
-  .note textarea:focus-visible { border-radius: 0 0 14px 14px; }
+  .note .nt:focus-visible { border-radius: 0 0 14px 14px; }
   .mtools { margin-left: 0; }
   .row { grid-template-columns: 5.6rem 4.6rem minmax(0, 1fr); }
   .tog { display: none; }
@@ -364,6 +372,15 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .vw-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--hair); border-left: 1px solid var(--hair); }
 .vw-grid > div { padding: 8px 12px; border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); min-width: 0; }
 .vw-grid .vw-v { font-size: 15.5px; }
+.dy-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.dy-cnt { font-size: 13px; color: var(--muted); }
+.dy-card { display: block; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; border: 1px solid var(--hair); background: var(--surface); border-radius: 14px; padding: 10px 14px; }
+.dy-card:hover { background: var(--hover); }
+.dy-t { font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.dy-m { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+.dy-s { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.dy-s span { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--head); color: var(--ink); }
+.dy-s.none { font-size: 12px; color: var(--muted); }
 .vw-sec { font-size: 13.5px; font-weight: 700; color: var(--muted); margin: 6px 0 -4px; }
 .vw-list { display: flex; flex-direction: column; gap: 3px; font-size: 15px; line-height: 1.55; }
 .vw-li { display: flex; gap: 8px; }
@@ -421,7 +438,18 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       <div id="cal" class="cal joined"></div>
       <div class="note">
         <label for="noteEl">비 고</label>
-        <textarea id="noteEl" rows="3" placeholder="담당자별 메모를 적으세요. 예) 희현 : 투자자산운용사(198부) / 자영 : 자동차정비기능사"></textarea>
+        <div class="nb">
+          <div class="nfmt" id="noteFmt" hidden>
+            <button type="button" class="b" data-cmd="bold" title="선택한 글자를 굵게">B</button>
+            <span class="sp"></span>
+            <button type="button" class="c" data-color="#d62828" style="background:#d62828" title="빨강" aria-label="빨강"></button>
+            <button type="button" class="c" data-color="#1d4ed8" style="background:#1d4ed8" title="파랑" aria-label="파랑"></button>
+            <button type="button" class="c" data-color="#15803d" style="background:#15803d" title="초록" aria-label="초록"></button>
+            <button type="button" class="c" data-color="#c2610c" style="background:#c2610c" title="주황" aria-label="주황"></button>
+            <button type="button" data-color="" title="글자색을 기본으로">기본색</button>
+          </div>
+          <div class="nt" id="noteEl" contenteditable="false" role="textbox" aria-multiline="true" aria-label="비고" data-ph="담당자별 메모를 적으세요. 예) 희현 : 투자자산운용사(198부) / 자영 : 자동차정비기능사"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -830,11 +858,55 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   var pendingNote = null;
   var noteTimer = null;
   var noteWriting = false;
-  function fitNote() {
-    var el = $('noteEl');
-    el.style.height = 'auto';
-    el.style.height = Math.max(el.scrollHeight, 74) + 'px';
+  /* 비고 서식: 굵게 + 글자색(고정 5색)만 허용. 저장 형식은 안전하게 걸러낸 간단한 HTML이며, 예전 일반 글은 그대로 읽힌다. */
+  var NOTE_MARK = '<!--n1-->';
+  var NOTE_COLORS = ['#d62828', '#1d4ed8', '#15803d', '#c2610c'];
+  function escN(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function colorOf(v) {
+    v = String(v || '').trim().toLowerCase();
+    var m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(v);
+    if (m) v = '#' + [m[1], m[2], m[3]].map(function (x) { var t = Number(x).toString(16); return t.length < 2 ? '0' + t : t; }).join('');
+    return NOTE_COLORS.indexOf(v) >= 0 ? v : '';
   }
+  function noteToHtml(text) {
+    text = text || '';
+    if (text.indexOf(NOTE_MARK) !== 0) return escN(text).replace(/\r?\n/g, '<br>');
+    var tmp = document.createElement('div');
+    tmp.innerHTML = text.slice(NOTE_MARK.length);
+    return cleanNote(tmp);
+  }
+  function cleanNote(root) {
+    var out = [];
+    function walk(node, bold, color) {
+      for (var n = node.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3) {
+          var t = escN(n.nodeValue.replace(/ /g, ' '));
+          if (!t) continue;
+          if (color) t = '<span style="color:' + color + '">' + t + '</span>';
+          if (bold) t = '<b>' + t + '</b>';
+          out.push(t);
+        } else if (n.nodeType === 1) {
+          var tag = n.tagName;
+          if (tag === 'BR') { out.push('<br>'); continue; }
+          var b2 = bold || tag === 'B' || tag === 'STRONG' || /^(bold|[6-9]00)$/.test((n.style && n.style.fontWeight) || '');
+          var c2 = color;
+          var raw = tag === 'FONT' ? n.getAttribute('color') : (n.style && n.style.color);
+          if (raw) c2 = colorOf(raw);
+          var block = (tag === 'DIV' || tag === 'P');
+          if (block && out.length && out[out.length - 1] !== '<br>') out.push('<br>');
+          walk(n, b2, c2);
+        }
+      }
+    }
+    walk(root, false, '');
+    while (out.length && out[out.length - 1] === '<br>') out.pop();
+    return out.join('');
+  }
+  function noteSerialize(el) {
+    var html = cleanNote(el);
+    return html ? NOTE_MARK + html : '';
+  }
+  function fitNote() { /* 입력 영역은 내용만큼 자동으로 늘어난다 */ }
   function renderNote() {
     var el = $('noteEl');
     var key = ymKey(view.y, view.m);
@@ -842,19 +914,29 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     if (noteKey !== key) {
       flushNote();
       noteKey = key;
-      el.value = remote;
-    } else if (document.activeElement !== el && !pendingNote && el.value !== remote) {
-      el.value = remote;
+      el.innerHTML = noteToHtml(remote);
+    } else if (document.activeElement !== el && !pendingNote && noteSerialize(el) !== (remote.indexOf(NOTE_MARK) === 0 ? NOTE_MARK + noteToHtml(remote) : remote)) {
+      el.innerHTML = noteToHtml(remote);
     }
-    el.readOnly = !canWrite;
-    fitNote();
+    el.contentEditable = canWrite ? 'true' : 'false';
+    $('noteFmt').hidden = !canWrite;
   }
   function onNoteInput() {
     if (!canWrite) return;
-    pendingNote = { key: noteKey, text: $('noteEl').value };
-    fitNote();
+    var el = $('noteEl');
+    if (!el.textContent && !el.querySelector('br')) el.innerHTML = '';
+    pendingNote = { key: noteKey, text: noteSerialize(el) };
     clearTimeout(noteTimer);
     noteTimer = setTimeout(flushNote, 900);
+  }
+  function noteFormat(btn) {
+    if (!canWrite) return;
+    var el = $('noteEl');
+    el.focus();
+    try { document.execCommand('styleWithCSS', false, true); } catch (e) { /* 무시 */ }
+    if (btn.hasAttribute('data-cmd')) document.execCommand('bold');
+    else document.execCommand('foreColor', false, btn.getAttribute('data-color') || '#010101');
+    onNoteInput();
   }
   function flushNote() {
     clearTimeout(noteTimer);
@@ -1296,12 +1378,46 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     }
     box.appendChild(ok);
     box.appendChild(h('div', { class: 'acts' },
+      dayBack && dayBack === e.date ? h('button', { type: 'button', class: 'btn', text: '← 이 날 목록', onclick: function () { openDay(dayBack); } }) : null,
       h('button', { type: 'button', class: 'btn pri', text: '수정', onclick: function () { closeView(); openEditor(id); } }),
       h('button', { type: 'button', class: 'btn', text: '인쇄', onclick: function () { printDoc(e.title, orderBlockHtml(id)); } }),
       h('button', { type: 'button', class: 'btn', text: '닫기', onclick: closeView })));
     $('vw').hidden = false;
   }
-  function closeView() { $('vw').hidden = true; }
+  var dayBack = '';
+  function openDay(key) {
+    var p = key.split('-'), y = +p[0], m = +p[1], dd = +p[2];
+    var list = byDate.get(key) || [];
+    var box = $('vwSheet');
+    box.textContent = '';
+    dayBack = key;
+    var hol = holiday(y, m, dd);
+    var okN = list.filter(function (e) { return (orderOf(e.id) || {}).confirmed; }).length;
+    box.appendChild(h('div', { class: 'dy-head' },
+      h('h2', { text: m + '월 ' + dd + '일 (' + DOW[new Date(y, m - 1, dd).getDay()] + ')' + (hol ? ' · ' + hol : '') }),
+      h('span', { class: 'dy-cnt', text: list.length ? '도서 ' + list.length + '권 · 상무님 확인 ' + okN + '/' + list.length : '등록된 도서 없음' })));
+    list.forEach(function (e) {
+      var d = orderOf(e.id) || {};
+      var bits = [];
+      if (d.bookFormat) bits.push(d.bookFormat.replace(/\s*[(（].*$/, ''));
+      if (d.productionMethod) bits.push(d.productionMethod);
+      if (d.printRun) bits.push(Number(d.printRun).toLocaleString() + '부');
+      if (d.pageCount) bits.push(Number(d.pageCount).toLocaleString() + 'p');
+      if (d.listPrice) bits.push(Number(d.listPrice).toLocaleString() + '원');
+      if (d.noStamp) bits.push('무인지');
+      var who = '표지 ' + (d.coverDesigner || '미정') + ' · 내지 ' + (e.designer ? (e.designer === '외주' && e.ext ? '외주 ' + e.ext : e.designer) : '미정');
+      box.appendChild(h('button', { type: 'button', class: 'dy-card', onclick: function () { openView(e.id); } },
+        h('div', { class: 'dy-t' }, typeTag(e.type), ' ', h('b', { text: e.title }), d.confirmed ? miniStamp() : null),
+        h('div', { class: 'dy-m' }, mtag(d.manager || ''), h('span', { class: 'dy-who', text: (d.manager ? d.manager + ' · ' : '') + who }), d.author ? h('span', { class: 'dy-who', text: '저자 ' + d.author }) : null),
+        bits.length ? h('div', { class: 'dy-s' }, bits.map(function (t) { return h('span', { text: t }); })) : h('div', { class: 'dy-s none', text: '발주도서 정보 미입력' })));
+    });
+    box.appendChild(h('div', { class: 'acts' },
+      h('button', { type: 'button', class: 'btn pri', text: '＋ 이 날 도서 추가', onclick: function () { closeView(); openEditor(null, key); } }),
+      list.length ? h('button', { type: 'button', class: 'btn', text: '이 날 인쇄', onclick: function () { printDoc(m + '월 ' + dd + '일 발주도서', list.map(function (e) { return orderBlockHtml(e.id); }).join('')); } }) : null,
+      h('button', { type: 'button', class: 'btn', text: '닫기', onclick: closeView })));
+    $('vw').hidden = false;
+  }
+  function closeView() { dayBack = ''; $('vw').hidden = true; }
   function closeEditor() { $('ed').hidden = true; disarm(); }
   function disarm() {
     ed.armed = false;
@@ -1442,7 +1558,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       var ent = e.target.closest('.ent');
       if (ent) { openView(ent.getAttribute('data-id')); return; }
       var cell = e.target.closest('.day[data-date]');
-      if (cell) openEditor(null, cell.getAttribute('data-date'));
+      if (!cell) return;
+      if (e.target.closest('.add')) { openEditor(null, cell.getAttribute('data-date')); return; }
+      openDay(cell.getAttribute('data-date'));
     });
     $('yearGrid').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-go]');
@@ -1457,6 +1575,13 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       if (b) openView(b.getAttribute('data-id'));
     });
     $('noteEl').addEventListener('input', onNoteInput);
+    $('noteEl').addEventListener('paste', function (ev) {
+      ev.preventDefault();
+      var t = (ev.clipboardData || window.clipboardData).getData('text');
+      document.execCommand('insertText', false, t);
+    });
+    $('noteFmt').addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+    $('noteFmt').addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (b) noteFormat(b); });
     $('noteEl').addEventListener('blur', flushNote);
     $('edForm').addEventListener('submit', saveEditor);
     $('vw').addEventListener('mousedown', function (e) { if (e.target === $('vw')) closeView(); });
@@ -1514,7 +1639,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       out.push('</tr>');
     }
     out.push('</tbody></table>');
-    out.push('<div class="note"><div class="nl">비 고</div><div class="nt">' + esc(notes.get(ymKey(y, m)) || '') + '</div></div>');
+    out.push('<div class="note"><div class="nl">비 고</div><div class="nt">' + noteToHtml(notes.get(ymKey(y, m)) || '') + '</div></div>');
     out.push('</body></html>');
     return out.join('');
   }
