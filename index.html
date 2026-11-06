@@ -112,7 +112,7 @@ body {
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.wrap { max-width: min(1720px, 96vw); margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.wrap { max-width: min(1560px, 96vw); margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 
 /* 상단 */
 .top { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 26px 16px 22px; border-radius: 22px; background: var(--surface); border: 1px solid var(--hair); box-shadow: var(--sh); isolation: isolate; }
@@ -325,12 +325,16 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 @media (min-width: 761px) {
   .cal { gap: 10px; }
   .cal .dow { font-size: 14px; padding: 4px 0 2px; }
-  .day { min-height: 12.5rem; padding: 10px 10px 12px; gap: 8px; border-radius: 16px; }
-  .cal.compact .day { min-height: 8.5rem; }
-  .dn .num { font-size: 16px; }
+  .day { min-height: 10.5rem; padding: 9px 9px 10px; gap: 7px; border-radius: 15px; }
+  .cal.compact .day { min-height: 7.5rem; }
+  .cal.wk-slim { grid-template-columns: minmax(0, .42fr) repeat(5, minmax(0, 1fr)) minmax(0, .42fr); }
+  .cal.wk-slim .day:nth-child(7n+1), .cal.wk-slim .day:nth-child(7n) { padding: 8px 6px; }
+  .cal.wk-slim .dn .wd, .cal.wk-slim .dn .add { display: none; }
+  .cal.wk-slim .dn .hl { display: none; }
+  .dn .num { font-size: 15px; }
   .dn .hl { font-size: 11.5px; }
-  .ent { font-size: 14.5px; line-height: 1.5; padding: 3px 6px; }
-  .dz.dot { min-width: 28px; height: 28px; font-size: 11.5px; }
+  .ent { font-size: 13.5px; line-height: 1.5; padding: 3px 5px; }
+  .dz.dot { min-width: 26px; height: 26px; font-size: 11px; }
   .more { font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
@@ -818,6 +822,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
         h('div', { class: 'list' }, list));
       cal.appendChild(cell);
     }
+    var wkEntries = false;
+    byDate.forEach(function (arr, k) { var p2 = k.split('-'); if (+p2[0] === y && +p2[1] === m) { var w = new Date(y, m - 1, +p2[2]).getDay(); if ((w === 0 || w === 6) && arr.length) wkEntries = true; } });
+    cal.classList.toggle('wk-slim', !wkEntries);
 
     var me = monthEntries(y, m);
     var cnt = {};
