@@ -380,6 +380,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .bk-stamp.off .st-in input { background: var(--hair); }
 .vw-stamps { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--hair); border-left: 1px solid var(--hair); }
 .vw-stamps > div { padding: 8px 12px; border-right: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.vw-vend { grid-template-columns: repeat(3, 1fr); }
+.vw-note { border: 1px solid var(--hair); border-top: 0; padding: 8px 12px; background: var(--surface); }
+.vw-nt { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; font-size: 14.5px; margin-top: 2px; }
 .vw-stamps.off > div { opacity: .3; filter: grayscale(1); }
 .vw-nostamp { display: inline-block; margin-left: 10px; padding: 2px 11px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 12.5px; font-weight: 700; vertical-align: 1px; }
 .sfx { position: relative; display: block; }
@@ -536,7 +539,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       <div class="bk-box"><div class="bk-vt" style="font-weight:700">거래처</div><div class="bk-row">
         <label class="f"><span>내지 거래처</span><input type="text" id="bkVendIn" list="bkVendList" placeholder="예: ○○인쇄"></label>
         <label class="f"><span>표지 거래처</span><input type="text" id="bkVendCov" list="bkVendList" placeholder="예: ○○인쇄"></label>
-      </div><datalist id="bkVendList"></datalist></div>
+        <label class="f"><span>내지 색상</span><input type="text" id="bkInk" list="bkInkList" placeholder="예: 1도 / 2도 / 4도"></label>
+      </div>
+      <label class="f"><span>제작 특이사항</span><textarea id="bkProdNote" rows="3" placeholder="예: 표지 박 가공, 내지 지류 변경, 납품처 분할 등"></textarea></label>
+      <datalist id="bkVendList"></datalist><datalist id="bkInkList"><option value="1도(흑백)"><option value="2도"><option value="4도(컬러)"><option value="1도+별색"><option value="2도+별색"></datalist></div>
       <label class="f"><span>도서 상세 내용 <small style="font-weight:400">(Enter를 누르면 다음 번호가 자동으로 붙습니다)</small></span><textarea id="bkDetails" rows="5" placeholder="1. 이론 및 연습문제 구성&#10;2. 연 6회 시험&#10;3. CBT 시험으로 출제"></textarea></label>
       <label class="f"><span>인쇄부수 이력 <small style="font-weight:400">(Enter를 누르면 다음 차수가 자동으로 붙습니다)</small></span><textarea id="bkHistory" rows="7" placeholder="5차) 14.10. 1000부&#10;6차) 15.11. 700부&#10;14차) 23.10. 표지갈이(321부)&#10;16차) 24.10. 500부 +표지갈이(164부) [228부(폐기)]" style="font-variant-numeric:tabular-nums"></textarea></label>
       <div class="f bk-stamp" id="bkStamp">
@@ -674,7 +680,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function orderOf(id) { var r = orders.get(id); return r ? r.data : null; }
   function orderHay(id) {
     var d = orderOf(id); if (!d) return '';
-    return [d.author, d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, d.printHistory, (d.noStamp ? '무인지' : ''), d.vendorInner, d.vendorCover, (d.notForSale ? '비매품' : ''), (d.noPublish ? '발행일없음' : ''), (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
+    return [d.author, d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, d.printHistory, (d.noStamp ? '무인지' : ''), d.vendorInner, d.vendorCover, d.innerColor, d.prodNote, (d.notForSale ? '비매품' : ''), (d.noPublish ? '발행일없음' : ''), (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
   }
 
   function holiday(y, m, d) {
@@ -1277,6 +1283,8 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('bkNoStamp').checked = !!bd.noStamp;
     $('bkVendIn').value = bd.vendorInner || '';
     $('bkVendCov').value = bd.vendorCover || '';
+    $('bkInk').value = bd.innerColor || '';
+    $('bkProdNote').value = bd.prodNote || '';
     (function () { var seen = {}; var dl = $('bkVendList'); dl.textContent = ''; orders.forEach(function (o) { [o.data.vendorInner, o.data.vendorCover].forEach(function (x) { if (x && !seen[x]) { seen[x] = 1; dl.appendChild(h('option', { value: x })); } }); }); })();
     $('bkNoPub').checked = !!bd.noPublish;
     $('bkNotSale').checked = !!bd.notForSale;
@@ -1400,9 +1408,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     box.appendChild(h('div', { class: 'vw-grid' },
       vwItem('판형', fmtNode), vwItem('제작방식', d.productionMethod), vwItem('제작부수', runNode), vwItem('판/쇄', d.edition),
       vwItem('페이지', pageNode), vwItem('작업툴', d.workTool), vwItem('정가', priceNode), vwItem('지류', d.paperType)));
-    if (d.vendorInner || d.vendorCover) {
-      box.appendChild(h('div', { class: 'vw-sec', text: '거래처' }));
-      box.appendChild(h('div', { class: 'vw-stamps' }, vwItem('내지 거래처', d.vendorInner), vwItem('표지 거래처', d.vendorCover)));
+    if (d.vendorInner || d.vendorCover || d.innerColor || d.prodNote) {
+      box.appendChild(h('div', { class: 'vw-sec', text: '거래처 · 제작 특이사항' }));
+      box.appendChild(h('div', { class: 'vw-stamps vw-vend' }, vwItem('내지 거래처', d.vendorInner), vwItem('표지 거래처', d.vendorCover), vwItem('내지 색상', d.innerColor)));
+      if (d.prodNote) box.appendChild(h('div', { class: 'vw-note' }, h('div', { class: 'vw-l', text: '제작 특이사항' }), h('div', { class: 'vw-nt', text: d.prodNote })));
     }
     if (d.details) { box.appendChild(h('div', { class: 'vw-sec', text: '도서 상세 내용' })); box.appendChild(listEl(d.details)); }
     if (d.printHistory) { box.appendChild(h('div', { class: 'vw-sec', text: '인쇄부수 이력' })); box.appendChild(h('div', { class: 'vw-hist', text: d.printHistory })); }
@@ -1502,11 +1511,11 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     return {
       author: v('bkAuthor'), manager: v('bkMgr'), coverDesigner: v('bkCover'), publishDate: v('bkPub'), paperType: v('bkPaper'), bookFormat: v('bkFmt'), productionMethod: v('bkMethod'),
       printRun: v('bkRun') ? Number(v('bkRun')) : null, edition: v('bkEd'), pageCount: v('bkPages') ? Number(v('bkPages')) : null, pageDelta: v('bkPageDelta') === '' ? '' : Number(v('bkPageDelta')), priceDelta: v('bkPriceDelta') === '' ? '' : Number(v('bkPriceDelta')),
-      workTool: v('bkTool') || 'InD', listPrice: v('bkPrice') ? Number(v('bkPrice')) : null, details: $('bkDetails').value.replace(/\s+$/, ''), printHistory: $('bkHistory').value.replace(/\s+$/, ''), stampHave: v('bkStampHave') === '' ? null : Number(v('bkStampHave')), stampNeed: v('bkStampNeed') === '' ? null : Number(v('bkStampNeed')), noStamp: $('bkNoStamp').checked, vendorInner: v('bkVendIn'), vendorCover: v('bkVendCov'), noPublish: $('bkNoPub').checked, notForSale: $('bkNotSale').checked, prevRun: v('bkPrevRun') ? Number(v('bkPrevRun')) : null, competitors: comps
+      workTool: v('bkTool') || 'InD', listPrice: v('bkPrice') ? Number(v('bkPrice')) : null, details: $('bkDetails').value.replace(/\s+$/, ''), printHistory: $('bkHistory').value.replace(/\s+$/, ''), stampHave: v('bkStampHave') === '' ? null : Number(v('bkStampHave')), stampNeed: v('bkStampNeed') === '' ? null : Number(v('bkStampNeed')), noStamp: $('bkNoStamp').checked, vendorInner: v('bkVendIn'), vendorCover: v('bkVendCov'), innerColor: v('bkInk'), prodNote: $('bkProdNote').value.replace(/\s+$/, ''), noPublish: $('bkNoPub').checked, notForSale: $('bkNotSale').checked, prevRun: v('bkPrevRun') ? Number(v('bkPrevRun')) : null, competitors: comps
     };
   }
   function bookHasContent(b, atts) {
-    return !!(b.author || b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.prevRun || b.printHistory || b.vendorInner || b.vendorCover || b.noStamp || b.noPublish || b.notForSale || b.stampHave != null || b.stampNeed != null || b.edition || b.pageCount || (b.pageDelta !== '') || (b.priceDelta !== '') || b.listPrice || b.details || b.competitors.length || atts.length);
+    return !!(b.author || b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.prevRun || b.printHistory || b.vendorInner || b.vendorCover || b.innerColor || b.prodNote || b.noStamp || b.noPublish || b.notForSale || b.stampHave != null || b.stampNeed != null || b.edition || b.pageCount || (b.pageDelta !== '') || (b.priceDelta !== '') || b.listPrice || b.details || b.competitors.length || atts.length);
   }
   // 발주도서 정보 저장 (book_orders 테이블, 도서 항목 id로 연결)
   var confirmReset = false;
@@ -1769,7 +1778,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     o += '<div class="k"><div><div class="l">담당자</div><div class="v">' + t(d.manager) + '</div></div><div><div class="l">출간일</div><div class="v">' + esc(fmtDot(e.date)) + '</div></div><div><div class="l">발행일</div><div class="v">' + (d.noPublish ? '발행일 없음' : d.publishDate ? esc(fmtDot(d.publishDate)) : '-') + '</div></div></div>';
     o += '<table><tr><td><div class="l">판형</div><b>' + t(d.bookFormat) + '</b></td><td><div class="l">제작방식</div><b>' + t(d.productionMethod) + '</b></td><td><div class="l">제작부수</div><b>' + n(d.printRun, '부') + (d.prevRun ? ' (이전판 ' + Number(d.prevRun).toLocaleString() + '부)' : '') + '</b></td><td><div class="l">판/쇄</div><b>' + t(d.edition) + '</b></td></tr>' +
       '<tr><td><div class="l">페이지</div><b>' + n(d.pageCount, 'p') + deltaPrint(d.pageDelta, 'p') + '</b></td><td><div class="l">작업툴</div><b>' + t(d.workTool) + '</b></td><td><div class="l">정가</div><b>' + (d.notForSale ? '비매품' : n(d.listPrice, '원') + deltaPrint(d.priceDelta, '원')) + '</b></td><td><div class="l">지류</div><b>' + t(d.paperType) + '</b></td></tr></table>';
-    if (d.vendorInner || d.vendorCover) o += '<div class="t">거래처</div><div class="tx">내지 : ' + t(d.vendorInner) + ' &nbsp;·&nbsp; 표지 : ' + t(d.vendorCover) + '</div>';
+    if (d.vendorInner || d.vendorCover || d.innerColor || d.prodNote) o += '<div class="t">거래처 · 제작 특이사항</div><div class="tx">내지 거래처 : ' + t(d.vendorInner) + ' &nbsp;·&nbsp; 표지 거래처 : ' + t(d.vendorCover) + ' &nbsp;·&nbsp; 내지 색상 : ' + t(d.innerColor) + (d.prodNote ? '\n제작 특이사항 : ' + esc(d.prodNote) : '') + '</div>';
     if (d.details) o += '<div class="t">도서 상세 내용</div><div class="tx">' + esc(d.details) + '</div>';
     if (d.printHistory) o += '<div class="t">인쇄부수 이력</div><div class="tx" style="font-size:10pt">' + esc(d.printHistory) + '</div>';
     if (d.noStamp) o += '<div class="t">인지 현황 <span style="font-weight:700">[무인지 도서]</span></div>';
