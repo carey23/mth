@@ -119,13 +119,15 @@ button { cursor: pointer; }
 .topright { position: absolute; top: 14px; right: 16px; z-index: 1; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: min(380px, 44%); text-align: left; }
 .toplink { display: inline-flex; align-items: center; gap: 6px; padding: 12px 24px; border-radius: 999px; background: linear-gradient(135deg, #5b50d6, #7b6cf2); color: #fff; font-size: 16px; font-weight: 800; letter-spacing: -.2px; text-decoration: none; box-shadow: 0 8px 20px -8px rgba(91, 80, 214, .7); border: 0; }
 .toplink:hover { filter: brightness(1.08); transform: translateY(-1px); }
-.xoff-card { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 14px; background: color-mix(in srgb, var(--surface) 92%, transparent); border: 1px solid #f0b6be; box-shadow: var(--sh); font-size: 12.5px; }
-.xoff-card[hidden] { display: none; }
-.xoff-card b { color: #c2263c; font-weight: 800; margin-right: 2px; }
-.xoff-card .xc { padding: 1px 9px; border-radius: 999px; background: #ffe3e7; color: #b3202f; font-weight: 700; font-variant-numeric: tabular-nums; }
+.xoff-card { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 5px 8px; width: 100%; padding: 9px 12px 10px; border-radius: 14px; background: color-mix(in srgb, var(--surface) 94%, transparent); border: 1px solid #f0b6be; box-shadow: var(--sh); font-size: 12.5px; }
+.xoff-card .xh { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.xoff-card .xh b { color: #c2263c; font-weight: 800; font-size: 13px; }
+.xoff-card .xc { justify-self: start; padding: 1px 10px; border-radius: 999px; background: #ffe3e7; color: #b3202f; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .xoff-card .xc.soon { background: #e0364c; color: #fff; }
-.xoff-card .xm { color: var(--muted); }
-.xoff-card button { font: inherit; font-size: 12px; cursor: pointer; border: 1px solid var(--hair); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 1px 9px; }
+.xoff-card .xm { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; line-height: 1.35; }
+.xoff-card .xm.dim { color: var(--muted); font-weight: 400; }
+.xoff-card .xr { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+.xoff-card button { font: inherit; font-size: 12px; cursor: pointer; border: 1px solid var(--hair); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 1px 10px; }
 .xoff-card button:hover { background: var(--hover); }
 .xoff { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 0 7px; border-radius: 999px; color: #fff; background: #e0364c; line-height: 1.7; white-space: nowrap; }
 .cal.wk-slim .dn .xoff { display: none; }
@@ -134,7 +136,7 @@ button { cursor: pointer; }
 .xo-row b { font-variant-numeric: tabular-nums; }
 .xo-row .xm { color: var(--muted); font-size: 13px; }
 .xo-row button { margin-left: auto; }
-@media (max-width: 760px) { .topright { position: static; max-width: 100%; align-items: center; margin-bottom: 2px; } .xoff-card { justify-content: center; } }
+@media (max-width: 1000px) { .topright { position: static; width: min(420px, 100%); max-width: 100%; align-items: center; margin-top: 4px; } .toplink { width: 100%; justify-content: center; } }
 @media print { .topright { display: none; } }
 .top .art { position: absolute; inset: 0; z-index: -2; opacity: .6; }
 .top .art svg { width: 100%; height: 100%; display: block; }
@@ -1886,20 +1888,27 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var t0 = offKey(new Date());
     return Array.from(offs.keys()).filter(function (k) { return k >= t0; }).sort();
   }
+  function fitTop() {
+    var top = document.querySelector('header.top'), tr = document.querySelector('.topright');
+    if (!top || !tr) return;
+    top.style.minHeight = '';
+    if (window.innerWidth > 1000) { var need = tr.offsetHeight + 30; if (need > top.offsetHeight) top.style.minHeight = need + 'px'; }
+  }
   function renderOff() {
     var box = $('xoffCard');
     box.textContent = '';
     var up = offUpcoming();
     var t0 = offKey(new Date());
     var soonLimit = offKey(new Date(Date.now() + 3 * 86400000));
-    box.appendChild(h('b', { text: '🗓 전무님 휴무' }));
-    if (offErr) box.appendChild(h('span', { class: 'xm', text: '아직 설정 전입니다' }));
-    else if (!up.length) box.appendChild(h('span', { class: 'xm', text: '예정된 휴무 없음' }));
-    up.slice(0, 5).forEach(function (k) {
-      box.appendChild(h('span', { class: 'xc' + (k <= soonLimit ? ' soon' : ''), title: offs.get(k) || '', text: offLabel(k) + (offs.get(k) ? ' ' + offs.get(k) : '') + (k === t0 ? ' · 오늘' : '') }));
+    box.appendChild(h('div', { class: 'xh' }, h('b', { text: '🗓 전무님 휴무' }), h('button', { type: 'button', text: '관리', title: '관리자 전용', onclick: openOff })));
+    if (offErr) box.appendChild(h('div', { class: 'xr', text: '아직 설정 전입니다' }));
+    else if (!up.length) box.appendChild(h('div', { class: 'xr', text: '예정된 휴무 없음' }));
+    up.slice(0, 4).forEach(function (k) {
+      box.appendChild(h('span', { class: 'xc' + (k <= soonLimit ? ' soon' : ''), text: offLabel(k) + (k === t0 ? ' 오늘' : '') }));
+      box.appendChild(h('span', { class: 'xm' + (offs.get(k) ? '' : ' dim'), text: offs.get(k) || '휴무' }));
     });
-    if (up.length > 5) box.appendChild(h('span', { class: 'xm', text: '외 ' + (up.length - 5) + '일' }));
-    box.appendChild(h('button', { type: 'button', text: '관리', title: '관리자 전용', onclick: openOff }));
+    if (up.length > 4) box.appendChild(h('div', { class: 'xr', text: '외 ' + (up.length - 4) + '일 더 있음 (관리에서 확인)' }));
+    fitTop();
   }
   function loadOff() {
     return sb.from('exec_off').select('*').order('off_date').then(function (r) {
@@ -1982,6 +1991,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('pwForm').addEventListener('submit', submitPw);
     $('pwCancel').addEventListener('click', closePw);
     $('xoQuick').addEventListener('click', function (e) { var b = e.target.closest('button[data-n]'); if (b) $('xoNote').value = b.getAttribute('data-n'); });
+    window.addEventListener('resize', fitTop);
     $('xoClose').addEventListener('click', function () { $('xo').hidden = true; });
     $('xoAdd').addEventListener('click', function () {
       var d = $('xoDate').value;
