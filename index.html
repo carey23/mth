@@ -116,6 +116,10 @@ button { cursor: pointer; }
 
 /* 상단 */
 .top { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 26px 16px 22px; border-radius: 22px; background: var(--surface); border: 1px solid var(--hair); box-shadow: var(--sh); isolation: isolate; }
+.toplink { position: absolute; top: 14px; right: 16px; z-index: 1; display: inline-flex; align-items: center; gap: 4px; padding: 7px 15px; border-radius: 999px; background: var(--surface); border: 1px solid var(--hair); box-shadow: var(--sh); color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; }
+.toplink:hover { background: var(--hover); }
+@media (max-width: 760px) { .toplink { position: static; margin-bottom: 2px; } }
+@media print { .toplink { display: none; } }
 .top .art { position: absolute; inset: 0; z-index: -2; opacity: .6; }
 .top .art svg { width: 100%; height: 100%; display: block; }
 .top::after { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse 42% 78% at 50% 50%, color-mix(in srgb, var(--surface) 82%, transparent), transparent 100%); }
@@ -189,6 +193,9 @@ h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-sp
 .list { padding: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .ent { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 1px 4px; border-radius: 5px; font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; transition: background 0.12s; }
 .ent:hover { background: var(--hover); }
+.ent { cursor: pointer; }
+.ent.dragging { opacity: .35; }
+.day.dropt { outline: 2.5px dashed var(--accent); outline-offset: -3px; background: var(--hover); }
 .ent.dim { opacity: 0.25; }
 .ty { font-weight: 600; }
 .t-new { color: var(--t-new); }
@@ -342,6 +349,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .stamp { display: inline-block; transform: rotate(-12deg); line-height: 0; flex: none; }
 .stamp.pop { animation: stampPop .5s cubic-bezier(.2, 1.4, .4, 1); }
 .stamp.big svg { width: 78px; height: 78px; filter: drop-shadow(0 2px 3px rgba(224, 54, 76, .25)); }
+.okmw { display: inline-flex; align-items: center; gap: 2px; vertical-align: -4px; margin-left: 3px; }
+.okmw .okm { margin-left: 0; vertical-align: 0; }
+.okhand { display: inline-block; line-height: 0; flex: none; transform: rotate(-8deg); }
+.okhand svg { width: var(--hs, 22px); height: var(--hs, 22px); display: block; }
 .okm { display: inline-block; vertical-align: -3px; margin-left: 3px; line-height: 0; transform: rotate(-12deg); }
 .okm svg { width: 17px; height: 17px; }
 .vw-ok { border: 1px dashed var(--line); border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
@@ -418,6 +429,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 <div class="wrap">
   <header class="top">
     <div class="art" id="art" aria-hidden="true"></div>
+    <a class="toplink" href="https://3rdsch.vercel.app" target="_blank" rel="noopener noreferrer">📋 주간계획서 바로가기 ↗</a>
     <h1>도서출판본부 월간계획표</h1>
     <div class="sub" id="sub"></div>
   </header>
@@ -521,6 +533,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
         <label class="f" id="bkPriceDeltaBox"><span>정가 증감 (이전판 대비)</span><span class="sfx"><input type="number" id="bkPriceDelta" step="1" placeholder="예: 2000 또는 -1000"><b>원</b></span></label>
       </div>
       <datalist id="bkFmtList"></datalist><datalist id="bkMethodList"></datalist>
+      <div class="bk-box"><div class="bk-vt" style="font-weight:700">거래처</div><div class="bk-row">
+        <label class="f"><span>내지 거래처</span><input type="text" id="bkVendIn" list="bkVendList" placeholder="예: ○○인쇄"></label>
+        <label class="f"><span>표지 거래처</span><input type="text" id="bkVendCov" list="bkVendList" placeholder="예: ○○인쇄"></label>
+      </div><datalist id="bkVendList"></datalist></div>
       <label class="f"><span>도서 상세 내용 <small style="font-weight:400">(Enter를 누르면 다음 번호가 자동으로 붙습니다)</small></span><textarea id="bkDetails" rows="5" placeholder="1. 이론 및 연습문제 구성&#10;2. 연 6회 시험&#10;3. CBT 시험으로 출제"></textarea></label>
       <label class="f"><span>인쇄부수 이력 <small style="font-weight:400">(Enter를 누르면 다음 차수가 자동으로 붙습니다)</small></span><textarea id="bkHistory" rows="7" placeholder="5차) 14.10. 1000부&#10;6차) 15.11. 700부&#10;14차) 23.10. 표지갈이(321부)&#10;16차) 24.10. 500부 +표지갈이(164부) [228부(폐기)]" style="font-variant-numeric:tabular-nums"></textarea></label>
       <div class="f bk-stamp" id="bkStamp">
@@ -658,7 +674,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function orderOf(id) { var r = orders.get(id); return r ? r.data : null; }
   function orderHay(id) {
     var d = orderOf(id); if (!d) return '';
-    return [d.author, d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, d.printHistory, (d.noStamp ? '무인지' : ''), (d.notForSale ? '비매품' : ''), (d.noPublish ? '발행일없음' : ''), (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
+    return [d.author, d.manager, d.coverDesigner, d.paperType, d.bookFormat, d.productionMethod, d.edition, d.details, d.printHistory, (d.noStamp ? '무인지' : ''), d.vendorInner, d.vendorCover, (d.notForSale ? '비매품' : ''), (d.noPublish ? '발행일없음' : ''), (d.competitors || []).map(function (c) { return c.name; }).join(' '), (d.attachments || []).map(function (a) { return a.name; }).join(' ')].join(' ').replace(/\s+/g, '').toLowerCase();
   }
 
   function holiday(y, m, d) {
@@ -866,12 +882,12 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   }
   function entryEl(e) {
     var dim = !mgrMatch(e.id) || !desMatch(e);
-    return h('button', { type: 'button', class: 'ent' + (dim ? ' dim' : ''), 'data-id': e.id, title: (e.type || '') + ' · ' + e.title + (mgrOf(e.id) ? ' · 담당 ' + mgrOf(e.id) : '') + (e.designer ? ' · 내지 ' + e.designer : '') + ((orderOf(e.id) || {}).coverDesigner ? ' · 표지 ' + orderOf(e.id).coverDesigner : '') },
+    return h('div', { role: 'button', tabindex: '0', draggable: 'true', class: 'ent' + (dim ? ' dim' : ''), 'data-id': e.id, title: (e.type || '') + ' · ' + e.title + (mgrOf(e.id) ? ' · 담당 ' + mgrOf(e.id) : '') + (e.designer ? ' · 내지 ' + e.designer : '') + ((orderOf(e.id) || {}).coverDesigner ? ' · 표지 ' + orderOf(e.id).coverDesigner : '') },
       typeTag(e.type), ' ', h('span', { text: e.title }), ' ', mtag(mgrOf(e.id)),
       e.history ? h('span', { class: 'hs', text: e.history }) : null,
       (orderOf(e.id) || {}).confirmed ? miniStamp() : null);
   }
-  function miniStamp() { var s2 = h('span', { class: 'okm', title: '상무님 확인 완료' }); s2.innerHTML = stampSvg(true); return s2; }
+  function miniStamp() { var s2 = h('span', { class: 'okm', title: '상무님 확인 완료' }); s2.innerHTML = stampSvg(true); var w = h('span', { class: 'okmw' }, s2, handEl(0)); return w; }
 
   /* ---------- 비고 ---------- */
   var noteKey = '';
@@ -1259,6 +1275,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('bkStampHave').value = bd.stampHave != null ? bd.stampHave : '';
     $('bkStampNeed').value = bd.stampNeed != null ? bd.stampNeed : '';
     $('bkNoStamp').checked = !!bd.noStamp;
+    $('bkVendIn').value = bd.vendorInner || '';
+    $('bkVendCov').value = bd.vendorCover || '';
+    (function () { var seen = {}; var dl = $('bkVendList'); dl.textContent = ''; orders.forEach(function (o) { [o.data.vendorInner, o.data.vendorCover].forEach(function (x) { if (x && !seen[x]) { seen[x] = 1; dl.appendChild(h('option', { value: x })); } }); }); })();
     $('bkNoPub').checked = !!bd.noPublish;
     $('bkNotSale').checked = !!bd.notForSale;
     syncFlags();
@@ -1305,6 +1324,16 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       '<text x="40" y="' + (mini ? 50 : 45) + '" text-anchor="middle" font-size="' + (mini ? 34 : 25) + '" font-weight="900" fill="' + c + '" font-family="Arial Black,Arial,sans-serif">OK</text>' +
       (mini ? '' : '<circle cx="24" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><circle cx="56" cy="52" r="4" fill="#f7a8b4" opacity=".75"/><path d="M31 53 Q40 62 49 53" fill="none" stroke="' + c + '" stroke-width="3" stroke-linecap="round"/>') + '</svg>';
   }
+  function handSvg() {
+    var c = '#e0364c';
+    var fg = function (d) { return '<path d="' + d + '" stroke="#fff" stroke-width="12"/><path d="' + d + '" stroke="' + c + '" stroke-width="8"/>'; };
+    return '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g stroke-linecap="round" stroke-linejoin="round" fill="none">' +
+      fg('M30 36 L24 10') + fg('M40 36 L38 7') + fg('M50 38 L53 12') + '</g>' +
+      '<path d="M18 38 C14 48 20 60 34 61 C48 62 58 54 57 42 C56 34 50 32 44 33 L24 33 Z" fill="' + c + '" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>' +
+      '<circle cx="15" cy="30" r="9" fill="#fff5f6" stroke="' + c + '" stroke-width="6"/>' +
+      '<path d="M20 36 L27 41" stroke="' + c + '" stroke-width="8" stroke-linecap="round"/></svg>';
+  }
+  function handEl(size) { var e = h('span', { class: 'okhand', title: 'OK', style: size ? '--hs:' + size + 'px' : null }); e.innerHTML = handSvg(); return e; }
   function stampEl(big, pop) { var e = h('span', { class: 'stamp' + (big ? ' big' : '') + (pop ? ' pop' : ''), title: '상무님 확인 완료' }); e.innerHTML = stampSvg(!big); return e; }
   var cfPending = null;
   function toggleConfirm(id, on) {
@@ -1353,7 +1382,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var n = function (v, suf) { return v ? Number(v).toLocaleString() + suf : ''; };
     box.appendChild(h('div', { style: 'display:flex;gap:8px;align-items:center;flex-wrap:wrap' }, typeTag(e.type), e.history ? h('small', { class: 'hs', text: e.history }) : null,
       d.noStamp ? h('span', { class: 'vw-nostamp', style: 'margin-left:0', text: '무인지 도서' }) : null,
-      d.confirmed ? h('span', { style: 'margin-left:auto' }, stampEl(true, pop)) : null));
+      d.confirmed ? h('span', { style: 'margin-left:auto;display:inline-flex;align-items:center;gap:6px' }, handEl(58), stampEl(true, pop)) : null));
     box.appendChild(h('h2', { text: e.title, style: 'font-size:22px;margin:0' }));
     if (d.author) box.appendChild(h('div', { class: 'vw-author' }, h('span', { text: '저자' }), d.author));
     var wk = [];
@@ -1371,6 +1400,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     box.appendChild(h('div', { class: 'vw-grid' },
       vwItem('판형', fmtNode), vwItem('제작방식', d.productionMethod), vwItem('제작부수', runNode), vwItem('판/쇄', d.edition),
       vwItem('페이지', pageNode), vwItem('작업툴', d.workTool), vwItem('정가', priceNode), vwItem('지류', d.paperType)));
+    if (d.vendorInner || d.vendorCover) {
+      box.appendChild(h('div', { class: 'vw-sec', text: '거래처' }));
+      box.appendChild(h('div', { class: 'vw-stamps' }, vwItem('내지 거래처', d.vendorInner), vwItem('표지 거래처', d.vendorCover)));
+    }
     if (d.details) { box.appendChild(h('div', { class: 'vw-sec', text: '도서 상세 내용' })); box.appendChild(listEl(d.details)); }
     if (d.printHistory) { box.appendChild(h('div', { class: 'vw-sec', text: '인쇄부수 이력' })); box.appendChild(h('div', { class: 'vw-hist', text: d.printHistory })); }
     if (d.noStamp || d.stampHave != null || d.stampNeed != null) {
@@ -1469,11 +1502,11 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     return {
       author: v('bkAuthor'), manager: v('bkMgr'), coverDesigner: v('bkCover'), publishDate: v('bkPub'), paperType: v('bkPaper'), bookFormat: v('bkFmt'), productionMethod: v('bkMethod'),
       printRun: v('bkRun') ? Number(v('bkRun')) : null, edition: v('bkEd'), pageCount: v('bkPages') ? Number(v('bkPages')) : null, pageDelta: v('bkPageDelta') === '' ? '' : Number(v('bkPageDelta')), priceDelta: v('bkPriceDelta') === '' ? '' : Number(v('bkPriceDelta')),
-      workTool: v('bkTool') || 'InD', listPrice: v('bkPrice') ? Number(v('bkPrice')) : null, details: $('bkDetails').value.replace(/\s+$/, ''), printHistory: $('bkHistory').value.replace(/\s+$/, ''), stampHave: v('bkStampHave') === '' ? null : Number(v('bkStampHave')), stampNeed: v('bkStampNeed') === '' ? null : Number(v('bkStampNeed')), noStamp: $('bkNoStamp').checked, noPublish: $('bkNoPub').checked, notForSale: $('bkNotSale').checked, prevRun: v('bkPrevRun') ? Number(v('bkPrevRun')) : null, competitors: comps
+      workTool: v('bkTool') || 'InD', listPrice: v('bkPrice') ? Number(v('bkPrice')) : null, details: $('bkDetails').value.replace(/\s+$/, ''), printHistory: $('bkHistory').value.replace(/\s+$/, ''), stampHave: v('bkStampHave') === '' ? null : Number(v('bkStampHave')), stampNeed: v('bkStampNeed') === '' ? null : Number(v('bkStampNeed')), noStamp: $('bkNoStamp').checked, vendorInner: v('bkVendIn'), vendorCover: v('bkVendCov'), noPublish: $('bkNoPub').checked, notForSale: $('bkNotSale').checked, prevRun: v('bkPrevRun') ? Number(v('bkPrevRun')) : null, competitors: comps
     };
   }
   function bookHasContent(b, atts) {
-    return !!(b.author || b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.prevRun || b.printHistory || b.noStamp || b.noPublish || b.notForSale || b.stampHave != null || b.stampNeed != null || b.edition || b.pageCount || (b.pageDelta !== '') || (b.priceDelta !== '') || b.listPrice || b.details || b.competitors.length || atts.length);
+    return !!(b.author || b.manager || b.coverDesigner || b.publishDate || b.paperType || b.bookFormat || b.productionMethod || b.printRun || b.prevRun || b.printHistory || b.vendorInner || b.vendorCover || b.noStamp || b.noPublish || b.notForSale || b.stampHave != null || b.stampNeed != null || b.edition || b.pageCount || (b.pageDelta !== '') || (b.priceDelta !== '') || b.listPrice || b.details || b.competitors.length || atts.length);
   }
   // 발주도서 정보 저장 (book_orders 테이블, 도서 항목 id로 연결)
   var confirmReset = false;
@@ -1497,6 +1530,20 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     }).then(function () { return removeAtts(removed); }, function (e) {
       return removeAtts(uploaded.map(function (a) { return a.path; })).then(function () { throw e; });
     });
+  }
+  function moveEntry(id, date) {
+    var e = entries.get(id);
+    if (!e || e.date === date || !canWrite) return;
+    var data = { id: id, date: date, type: e.type, title: e.title, history: e.history || '', designer: e.designer || '', ext: e.ext || '', tag_raw: e.tagRaw || '', at: e.at || Date.now() };
+    var p2 = date.split('-');
+    rpc('schedule_upsert_entry', { p: passcode, e: data }).then(function () {
+      var o = orders.get(id);
+      if (!o) return null;
+      return sb.from('book_orders').update({ order_date: date }).eq('id', o.id).then(function (r) { if (r.error) throw r.error; });
+    }).then(function () {
+      toast('「' + e.title + '」을(를) ' + (+p2[1]) + '월 ' + (+p2[2]) + '일로 옮겼습니다.');
+      refresh();
+    }, function (err) { toast('옮기지 못했습니다. 연결을 확인하세요.'); dbError(err); refresh(); });
   }
   var saving = false;
   function saveEditor(ev) {
@@ -1594,6 +1641,41 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       if (e.target.closest('.add')) { openEditor(null, cell.getAttribute('data-date')); return; }
       openDay(cell.getAttribute('data-date'));
     });
+    $('cal').addEventListener('keydown', function (e) {
+      var ent = e.target.closest && e.target.closest('.ent');
+      if (ent && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openView(ent.getAttribute('data-id')); }
+    });
+    var dragId = '';
+    $('cal').addEventListener('dragstart', function (e) {
+      var ent = e.target.closest && e.target.closest('.ent');
+      if (!ent) return;
+      if (!canWrite) { e.preventDefault(); toast('옮기려면 먼저 비밀번호를 입력해 수정 가능 상태로 바꾸세요.'); return; }
+      dragId = ent.getAttribute('data-id');
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', dragId); } catch (x) { /* 무시 */ }
+      ent.classList.add('dragging');
+    });
+    function clearDrop() { Array.prototype.forEach.call($('cal').querySelectorAll('.dropt'), function (x) { x.classList.remove('dropt'); }); }
+    $('cal').addEventListener('dragover', function (e) {
+      if (!dragId) return;
+      var cell = e.target.closest('.day[data-date]');
+      if (!cell) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (!cell.classList.contains('dropt')) { clearDrop(); cell.classList.add('dropt'); }
+    });
+    $('cal').addEventListener('dragleave', function (e) { if (!e.relatedTarget || !$('cal').contains(e.relatedTarget)) clearDrop(); });
+    $('cal').addEventListener('drop', function (e) {
+      if (!dragId) return;
+      var cell = e.target.closest('.day[data-date]');
+      var id = dragId;
+      dragId = '';
+      clearDrop();
+      if (!cell) return;
+      e.preventDefault();
+      moveEntry(id, cell.getAttribute('data-date'));
+    });
+    $('cal').addEventListener('dragend', function () { dragId = ''; clearDrop(); Array.prototype.forEach.call($('cal').querySelectorAll('.dragging'), function (x) { x.classList.remove('dragging'); }); });
     $('yearGrid').addEventListener('click', function (e) {
       var b = e.target.closest('button[data-go]');
       if (!b) return;
@@ -1687,6 +1769,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     o += '<div class="k"><div><div class="l">담당자</div><div class="v">' + t(d.manager) + '</div></div><div><div class="l">출간일</div><div class="v">' + esc(fmtDot(e.date)) + '</div></div><div><div class="l">발행일</div><div class="v">' + (d.noPublish ? '발행일 없음' : d.publishDate ? esc(fmtDot(d.publishDate)) : '-') + '</div></div></div>';
     o += '<table><tr><td><div class="l">판형</div><b>' + t(d.bookFormat) + '</b></td><td><div class="l">제작방식</div><b>' + t(d.productionMethod) + '</b></td><td><div class="l">제작부수</div><b>' + n(d.printRun, '부') + (d.prevRun ? ' (이전판 ' + Number(d.prevRun).toLocaleString() + '부)' : '') + '</b></td><td><div class="l">판/쇄</div><b>' + t(d.edition) + '</b></td></tr>' +
       '<tr><td><div class="l">페이지</div><b>' + n(d.pageCount, 'p') + deltaPrint(d.pageDelta, 'p') + '</b></td><td><div class="l">작업툴</div><b>' + t(d.workTool) + '</b></td><td><div class="l">정가</div><b>' + (d.notForSale ? '비매품' : n(d.listPrice, '원') + deltaPrint(d.priceDelta, '원')) + '</b></td><td><div class="l">지류</div><b>' + t(d.paperType) + '</b></td></tr></table>';
+    if (d.vendorInner || d.vendorCover) o += '<div class="t">거래처</div><div class="tx">내지 : ' + t(d.vendorInner) + ' &nbsp;·&nbsp; 표지 : ' + t(d.vendorCover) + '</div>';
     if (d.details) o += '<div class="t">도서 상세 내용</div><div class="tx">' + esc(d.details) + '</div>';
     if (d.printHistory) o += '<div class="t">인쇄부수 이력</div><div class="tx" style="font-size:10pt">' + esc(d.printHistory) + '</div>';
     if (d.noStamp) o += '<div class="t">인지 현황 <span style="font-weight:700">[무인지 도서]</span></div>';
