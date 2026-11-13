@@ -130,6 +130,7 @@ button { cursor: pointer; }
 .xoff { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 0 7px; border-radius: 999px; color: #fff; background: #e0364c; line-height: 1.7; white-space: nowrap; }
 .cal.wk-slim .dn .xoff { display: none; }
 .xo-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--hair); border-radius: 10px; background: var(--bg); }
+.seg .btn { padding: 4px 12px; font-size: 13px; }
 .xo-row b { font-variant-numeric: tabular-nums; }
 .xo-row .xm { color: var(--muted); font-size: 13px; }
 .xo-row button { margin-left: auto; }
@@ -606,8 +607,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <div id="xoList" style="display:flex;flex-direction:column;gap:6px"></div>
     <div class="bk-row">
       <label class="f"><span>휴무일</span><input type="date" id="xoDate"></label>
-      <label class="f"><span>메모 (선택)</span><input type="text" id="xoNote" maxlength="30" placeholder="예: 연차, 출장"></label>
+      <label class="f"><span>메모 (모두에게 보입니다)</span><input type="text" id="xoNote" maxlength="30" placeholder="예: 연차, 오전 반차, 출장"></label>
     </div>
+    <div class="seg" id="xoQuick" style="margin-top:-4px"><button type="button" class="btn" data-n="휴무">휴무</button><button type="button" class="btn" data-n="연차">연차</button><button type="button" class="btn" data-n="오전 반차">오전 반차</button><button type="button" class="btn" data-n="오후 반차">오후 반차</button><button type="button" class="btn" data-n="출장">출장</button></div>
     <p class="err" id="xoErr" role="alert"></p>
     <div class="acts"><button type="button" class="btn pri" id="xoAdd">휴무일 추가</button><button type="button" class="btn" id="xoClose">닫기</button></div>
   </div>
@@ -870,7 +872,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
           h('span', { class: 'num', text: String(d) }),
           h('span', { class: 'wd', text: DOW[col] + '요일' }),
           hol ? h('span', { class: 'hl', text: hol }) : null,
-          offs.has(key) ? h('span', { class: 'xoff', text: '전무님 휴무', title: offs.get(key) || '전무님 휴무' }) : null,
+          offs.has(key) ? h('span', { class: 'xoff', text: '전무님 ' + (offs.get(key) || '휴무') }) : null,
           h('button', { type: 'button', class: 'add', 'aria-label': m + '월 ' + d + '일에 도서 추가', text: '＋', 'data-date': key })),
         h('div', { class: 'list' }, list));
       cal.appendChild(cell);
@@ -1497,7 +1499,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var hol = holiday(y, m, dd);
     var okN = list.filter(function (e) { return (orderOf(e.id) || {}).confirmed; }).length;
     box.appendChild(h('div', { class: 'dy-head' },
-      h('h2', { text: m + '월 ' + dd + '일 (' + DOW[new Date(y, m - 1, dd).getDay()] + ')' + (hol ? ' · ' + hol : '') + (offs.has(key) ? ' · 전무님 휴무' : '') }),
+      h('h2', { text: m + '월 ' + dd + '일 (' + DOW[new Date(y, m - 1, dd).getDay()] + ')' + (hol ? ' · ' + hol : '') + (offs.has(key) ? ' · 전무님 ' + (offs.get(key) || '휴무') : '') }),
       h('span', { class: 'dy-cnt', text: list.length ? '도서 ' + list.length + '권 · 상무님 확인 ' + okN + '/' + list.length : '등록된 도서 없음' })));
     list.forEach(function (e) {
       var d = orderOf(e.id) || {};
@@ -1894,7 +1896,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     if (offErr) box.appendChild(h('span', { class: 'xm', text: '아직 설정 전입니다' }));
     else if (!up.length) box.appendChild(h('span', { class: 'xm', text: '예정된 휴무 없음' }));
     up.slice(0, 5).forEach(function (k) {
-      box.appendChild(h('span', { class: 'xc' + (k <= soonLimit ? ' soon' : ''), title: offs.get(k) || '', text: offLabel(k) + (k === t0 ? ' 오늘' : '') }));
+      box.appendChild(h('span', { class: 'xc' + (k <= soonLimit ? ' soon' : ''), title: offs.get(k) || '', text: offLabel(k) + (offs.get(k) ? ' ' + offs.get(k) : '') + (k === t0 ? ' · 오늘' : '') }));
     });
     if (up.length > 5) box.appendChild(h('span', { class: 'xm', text: '외 ' + (up.length - 5) + '일' }));
     box.appendChild(h('button', { type: 'button', text: '관리', title: '관리자 전용', onclick: openOff }));
@@ -1979,6 +1981,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function wirePw() {
     $('pwForm').addEventListener('submit', submitPw);
     $('pwCancel').addEventListener('click', closePw);
+    $('xoQuick').addEventListener('click', function (e) { var b = e.target.closest('button[data-n]'); if (b) $('xoNote').value = b.getAttribute('data-n'); });
     $('xoClose').addEventListener('click', function () { $('xo').hidden = true; });
     $('xoAdd').addEventListener('click', function () {
       var d = $('xoDate').value;
