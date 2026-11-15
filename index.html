@@ -133,6 +133,7 @@ button { cursor: pointer; }
 .cal.wk-slim .dn .xoff { display: none; }
 .xo-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--hair); border-radius: 10px; background: var(--bg); }
 .seg .btn { padding: 4px 12px; font-size: 13px; }
+.xo-row.past { opacity: .55; }
 .xo-row b { font-variant-numeric: tabular-nums; }
 .xo-row .xm { color: var(--muted); font-size: 13px; }
 .xo-row button { margin-left: auto; }
@@ -1920,10 +1921,11 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function offListRender() {
     var box = $('xoList');
     box.textContent = '';
-    var up = offUpcoming();
-    if (!up.length) box.appendChild(h('div', { class: 'hs', text: '등록된 예정 휴무일이 없습니다.' }));
+    var t0 = offKey(new Date());
+    var up = Array.from(offs.keys()).sort();
+    if (!up.length) box.appendChild(h('div', { class: 'hs', text: '등록된 휴무일이 없습니다.' }));
     up.forEach(function (k) {
-      box.appendChild(h('div', { class: 'xo-row' }, h('b', { text: k.replace(/-/g, '.') + ' (' + DOW[new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8)).getDay()] + ')' }), h('span', { class: 'xm', text: offs.get(k) || '' }),
+      box.appendChild(h('div', { class: 'xo-row' + (k < t0 ? ' past' : '') }, h('b', { text: k.replace(/-/g, '.') + ' (' + DOW[new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8)).getDay()] + ')' }), h('span', { class: 'xm', text: (offs.get(k) || '') + (k < t0 ? (offs.get(k) ? ' · ' : '') + '지난 날짜' : '') }),
         h('button', { type: 'button', class: 'btn', text: '삭제', onclick: function () { offCall('exec_off_del', { p_pass: $('xoPw').value, p_date: k }, '삭제했습니다.'); } })));
     });
   }
@@ -1996,7 +1998,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('xoAdd').addEventListener('click', function () {
       var d = $('xoDate').value;
       if (!d) { $('xoErr').textContent = '휴무일을 선택하세요.'; return; }
-      offCall('exec_off_add', { p_pass: $('xoPw').value, p_date: d, p_note: $('xoNote').value.trim() }, '휴무일을 추가했습니다.');
+      offCall('exec_off_add', { p_pass: $('xoPw').value, p_date: d, p_note: $('xoNote').value.trim() }, d < offKey(new Date()) ? '저장했습니다. 지난 날짜라 공지 박스에는 나오지 않고 달력에만 표시됩니다.' : '휴무일을 추가했습니다.');
     });
     $('pw').addEventListener('mousedown', function (e) { if (e.target === $('pw')) closePw(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('pw').hidden) closePw(); });
