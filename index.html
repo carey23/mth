@@ -123,6 +123,7 @@ button { cursor: pointer; }
 .xoff-card .xh { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .xoff-card .xh b { color: #c2263c; font-weight: 800; font-size: 13px; }
 .xoff-card .xc { justify-self: start; padding: 1px 10px; border-radius: 999px; background: #ffe3e7; color: #b3202f; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.xoff-card .xc.past { background: var(--hair); color: var(--muted); font-weight: 600; }
 .xoff-card .xc.soon { background: #e0364c; color: #fff; }
 .xoff-card .xm { color: var(--ink); font-weight: 600; overflow-wrap: anywhere; line-height: 1.35; }
 .xoff-card .xm.dim { color: var(--muted); font-weight: 400; }
@@ -1898,17 +1899,19 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function renderOff() {
     var box = $('xoffCard');
     box.textContent = '';
-    var up = offUpcoming();
     var t0 = offKey(new Date());
+    var from = offKey(new Date(Date.now() - 7 * 86400000));
+    var up = Array.from(offs.keys()).filter(function (k) { return k >= from; }).sort();
     var soonLimit = offKey(new Date(Date.now() + 3 * 86400000));
     box.appendChild(h('div', { class: 'xh' }, h('b', { text: '🗓 전무님 휴무' }), h('button', { type: 'button', text: '관리', title: '관리자 전용', onclick: openOff })));
     if (offErr) box.appendChild(h('div', { class: 'xr', text: '아직 설정 전입니다' }));
     else if (!up.length) box.appendChild(h('div', { class: 'xr', text: '예정된 휴무 없음' }));
-    up.slice(0, 4).forEach(function (k) {
-      box.appendChild(h('span', { class: 'xc' + (k <= soonLimit ? ' soon' : ''), text: offLabel(k) + (k === t0 ? ' 오늘' : '') }));
-      box.appendChild(h('span', { class: 'xm' + (offs.get(k) ? '' : ' dim'), text: offs.get(k) || '휴무' }));
+    up.slice(0, 5).forEach(function (k) {
+      var past = k < t0;
+      box.appendChild(h('span', { class: 'xc' + (past ? ' past' : k <= soonLimit ? ' soon' : ''), text: offLabel(k) + (k === t0 ? ' 오늘' : '') }));
+      box.appendChild(h('span', { class: 'xm' + (offs.get(k) && !past ? '' : ' dim'), text: (offs.get(k) || '휴무') + (past ? ' · 지난 날짜' : '') }));
     });
-    if (up.length > 4) box.appendChild(h('div', { class: 'xr', text: '외 ' + (up.length - 4) + '일 더 있음 (관리에서 확인)' }));
+    if (up.length > 5) box.appendChild(h('div', { class: 'xr', text: '외 ' + (up.length - 5) + '일 더 있음 (관리에서 확인)' }));
     fitTop();
   }
   function loadOff() {
