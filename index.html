@@ -147,6 +147,32 @@ button { cursor: pointer; }
 @media print { .top { background: none; border: 0; box-shadow: none; } .top .art, .top::after { display: none; } }
 h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
 .sub { display: inline-block; padding: 3px 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--hair); box-shadow: var(--sh); font-size: clamp(13px, 2.4vw, 15px); font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ctrl { background: var(--surface); border: 1px solid var(--hair); border-radius: 18px; box-shadow: var(--sh); padding: 6px 18px; }
+.ctrl > .bar, .ctrl > .nav, .ctrl > .fbar { padding: 11px 0; margin: 0; }
+.ctrl > .nav, .ctrl > .fbar { border-top: 1px solid var(--hair); }
+.ctrl > .fbar[hidden] { display: none; }
+.nboard { background: var(--surface); border: 1px solid var(--hair); border-radius: 18px; box-shadow: var(--sh); overflow: hidden; }
+.nb-head { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: var(--head); border-bottom: 1px solid var(--hair); }
+.nb-head h2 { margin: 0; font-size: 15.5px; letter-spacing: -.2px; }
+.nb-cnt { font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+.nb-act { margin-left: auto; display: flex; gap: 6px; }
+.nb-act button { font: inherit; font-size: 12.5px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 3px 12px; }
+.nb-act button:hover { background: var(--hover); }
+.nb-row { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 10px 18px; border: 0; border-bottom: 1px solid var(--hair); background: none; }
+.nb-row:last-child { border-bottom: 0; }
+.nb-row:hover { background: var(--hover); }
+.nb-tag { justify-self: center; font-size: 11.5px; font-weight: 800; padding: 1px 0; width: 3rem; text-align: center; border-radius: 999px; background: var(--head); color: var(--muted); }
+.nb-row.pin .nb-tag { background: #e0364c; color: #fff; }
+.nb-ti { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14.5px; }
+.nb-row.pin .nb-ti { font-weight: 800; }
+.nb-new { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 800; padding: 0 5px; border-radius: 4px; background: var(--accent); color: var(--accent-ink); vertical-align: 1px; }
+.nb-dt { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nb-empty { padding: 16px 18px; color: var(--muted); font-size: 13.5px; }
+.nv-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; color: var(--muted); font-size: 13px; }
+.nv-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; font-size: 15px; padding: 14px 16px; background: var(--bg); border: 1px solid var(--hair); border-radius: 12px; min-height: 5rem; }
+.nv-body a { color: var(--accent); }
+@media (max-width: 560px) { .nb-row { grid-template-columns: 2.8rem minmax(0, 1fr); } .nb-dt { grid-column: 2; } .ctrl { padding: 4px 12px; } }
+@media print { .nboard { display: none; } .ctrl { border: 0; box-shadow: none; padding: 0; } }
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; justify-content: space-between; }
 .tabs { display: inline-flex; gap: 2px; padding: 3px; background: var(--head); border-radius: 999px; }
 .tabs button { border: 0; background: transparent; padding: 6px 18px; border-radius: 999px; font-weight: 500; color: var(--muted); transition: background 0.15s, color 0.15s; }
@@ -457,6 +483,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <div class="sub" id="sub"></div>
   </header>
 
+  <section class="nboard" id="noticeBoard" aria-label="공지사항"></section>
+
+  <div class="ctrl">
   <div class="bar">
     <div class="tabs" role="group" aria-label="보기 전환">
       <button type="button" id="tabMonth" aria-pressed="true">월간</button>
@@ -476,6 +505,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <label>담당자 <select id="mgrFilter"></select></label>
     <label>조판자 <select id="desFilter"></select></label>
     <button type="button" class="ghost" id="fClear" hidden>필터 해제</button>
+  </div>
   </div>
   <section id="vMonth">
     <div class="meta">
@@ -602,6 +632,23 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <label class="f"><span>팀 공용 비밀번호</span><input type="password" id="pwIn" autocomplete="off" required></label>
     <p class="err" id="pwErr" role="alert"></p>
     <div class="acts"><button type="submit" class="btn pri">확인</button><button type="button" class="btn" id="pwCancel">취소</button></div>
+  </form>
+</div>
+<div class="modal" id="nv" hidden>
+  <div class="sheet wide" id="nvSheet" role="dialog" aria-modal="true"></div>
+</div>
+<div class="modal" id="ne" hidden>
+  <form class="sheet wide" id="neForm" autocomplete="off" aria-labelledby="neHead">
+    <h2 id="neHead">공지사항 작성</h2>
+    <label class="f"><span>관리자 전용 비밀번호</span><input type="password" id="nePw" autocomplete="off"></label>
+    <label class="f"><span>제목</span><input type="text" id="neTitle" maxlength="100" placeholder="공지 제목"></label>
+    <label class="f"><span>내용</span><textarea id="neBody" rows="9" maxlength="4000" placeholder="세부 내용을 입력하세요. (줄바꿈이 그대로 보입니다)"></textarea></label>
+    <div class="bk-row">
+      <label class="f"><span>작성자 (선택)</span><input type="text" id="neAuthor" maxlength="20" placeholder="예: 차인태"></label>
+      <div class="f"><span>&nbsp;</span><div class="seg"><label><input type="checkbox" id="nePin"><span>📌 중요 공지(맨 위 고정)</span></label></div></div>
+    </div>
+    <p class="err" id="neErr" role="alert"></p>
+    <div class="acts"><button type="submit" class="btn pri" id="neSave">저장</button><button type="button" class="btn" id="neDel" hidden>삭제</button><button type="button" class="btn" id="neCancel">취소</button></div>
   </form>
 </div>
 <div class="modal" id="xo" hidden>
@@ -1880,6 +1927,98 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     });
   }
   function scheduleRefresh() { clearTimeout(refreshTimer); refreshTimer = setTimeout(refresh, 250); }
+  /* ---------- 공지사항 ---------- */
+  var notices = [];
+  var noticeErr = false;
+  var noticeAll = false;
+  var NOTICE_SHOW = 5;
+  function nDate(t) { var d = new Date(t); return isNaN(d) ? '' : d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()); }
+  function nIsNew(t) { return Date.now() - new Date(t).getTime() < 3 * 86400000; }
+  function renderNotices() {
+    var box = $('noticeBoard');
+    box.textContent = '';
+    box.appendChild(h('div', { class: 'nb-head' }, h('h2', { text: '📢 공지사항' }), notices.length ? h('span', { class: 'nb-cnt', text: String(notices.length) }) : null,
+      h('div', { class: 'nb-act' },
+        notices.length > NOTICE_SHOW ? h('button', { type: 'button', text: noticeAll ? '접기' : '전체 보기', onclick: function () { noticeAll = !noticeAll; renderNotices(); } }) : null,
+        h('button', { type: 'button', text: '＋ 글쓰기', title: '관리자 전용', onclick: function () { openNoticeEditor(null); } }))));
+    if (noticeErr) { box.appendChild(h('div', { class: 'nb-empty', text: '공지사항 기능이 아직 설정되지 않았습니다. (설정 SQL 실행 필요)' })); return; }
+    if (!notices.length) { box.appendChild(h('div', { class: 'nb-empty', text: '등록된 공지사항이 없습니다.' })); return; }
+    (noticeAll ? notices : notices.slice(0, NOTICE_SHOW)).forEach(function (n) {
+      box.appendChild(h('button', { type: 'button', class: 'nb-row' + (n.pinned ? ' pin' : ''), onclick: function () { openNotice(n.id); } },
+        h('span', { class: 'nb-tag', text: n.pinned ? '중요' : '공지' }),
+        h('span', { class: 'nb-ti' }, n.title, nIsNew(n.created_at) ? h('span', { class: 'nb-new', text: 'NEW' }) : null),
+        h('span', { class: 'nb-dt', text: nDate(n.created_at) })));
+    });
+  }
+  function loadNotices() {
+    return sb.from('notices').select('*').then(function (r) {
+      if (r.error) { noticeErr = true; notices = []; }
+      else {
+        noticeErr = false;
+        notices = r.data.slice().sort(function (a, b) { return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || new Date(b.created_at) - new Date(a.created_at); });
+      }
+      renderNotices();
+    }, function () { noticeErr = true; renderNotices(); });
+  }
+  function linkify(text) {
+    var out = [];
+    String(text).split(/(https?:\/\/[^\s<>"']+)/g).forEach(function (part, i) {
+      if (i % 2 === 1 && safeHref(part)) out.push(h('a', { href: safeHref(part), target: '_blank', rel: 'noopener noreferrer', text: part }));
+      else if (part) out.push(part);
+    });
+    return out;
+  }
+  function openNotice(id) {
+    var n = notices.filter(function (x) { return x.id === id; })[0];
+    if (!n) return;
+    var box = $('nvSheet');
+    box.textContent = '';
+    box.appendChild(h('div', { class: 'nv-meta' }, h('span', { class: 'nb-tag', style: n.pinned ? 'background:#e0364c;color:#fff' : '', text: n.pinned ? '중요' : '공지' }), h('span', { text: nDate(n.created_at) }), n.author ? h('span', { text: '작성 ' + n.author }) : null,
+      n.updated_at && nDate(n.updated_at) !== nDate(n.created_at) ? h('span', { text: '(수정 ' + nDate(n.updated_at) + ')' }) : null));
+    box.appendChild(h('h2', { text: n.title, style: 'font-size:21px;margin:0' }));
+    box.appendChild(h('div', { class: 'nv-body' }, linkify(n.body || '')));
+    box.appendChild(h('div', { class: 'acts' },
+      h('button', { type: 'button', class: 'btn', text: '수정 (관리자)', onclick: function () { $('nv').hidden = true; openNoticeEditor(n); } }),
+      h('button', { type: 'button', class: 'btn pri', text: '닫기', onclick: function () { $('nv').hidden = true; } })));
+    $('nv').hidden = false;
+  }
+  var neId = null;
+  var neArm = false;
+  function openNoticeEditor(n) {
+    neId = n ? n.id : null;
+    neArm = false;
+    $('neHead').textContent = n ? '공지사항 수정' : '공지사항 작성';
+    $('neTitle').value = n ? n.title : '';
+    $('neBody').value = n ? n.body || '' : '';
+    $('neAuthor').value = n ? n.author || '' : '';
+    $('nePin').checked = !!(n && n.pinned);
+    $('neErr').textContent = '';
+    $('neDel').hidden = !n;
+    $('neDel').textContent = '삭제';
+    $('ne').hidden = false;
+    $('nePw').focus();
+  }
+  function neError(e) {
+    var m = (e && e.message) || '';
+    $('neErr').textContent = /bad password/i.test(m) ? '비밀번호가 맞지 않습니다.' : /could not find|not exist|404|PGRST/i.test(m + (e && e.code || '')) ? '공지사항 기능 설정(SQL)이 아직 실행되지 않았습니다.' : '저장하지 못했습니다. 연결을 확인하세요.';
+  }
+  function saveNotice(ev) {
+    ev.preventDefault();
+    var pw = $('nePw').value, title = $('neTitle').value.trim();
+    if (!pw) { $('neErr').textContent = '관리자 비밀번호를 입력하세요.'; return; }
+    if (!title) { $('neErr').textContent = '제목을 입력하세요.'; return; }
+    rpc('notice_save', { p_pass: pw, p_id: neId, p_title: title, p_body: $('neBody').value, p_pinned: $('nePin').checked, p_author: $('neAuthor').value.trim() }).then(function () {
+      $('ne').hidden = true;
+      toast(neId ? '공지사항을 수정했습니다.' : '공지사항을 등록했습니다.');
+      return loadNotices();
+    }, neError);
+  }
+  function deleteNotice() {
+    if (!neId) return;
+    if (!$('nePw').value) { $('neErr').textContent = '관리자 비밀번호를 입력하세요.'; return; }
+    if (!neArm) { neArm = true; $('neDel').textContent = '정말 삭제'; return; }
+    rpc('notice_delete', { p_pass: $('nePw').value, p_id: neId }).then(function () { $('ne').hidden = true; toast('삭제했습니다.'); return loadNotices(); }, neError);
+  }
   /* ---------- 전무님 휴무일 ---------- */
   var offs = new Map();
   var offErr = false;
@@ -1961,6 +2100,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       rebuild();
       render();
       loadOff();
+      loadNotices();
       if (!live) setStatus('ok', '연결됨');
     }, function () {
       setStatus('err', '불러오지 못했습니다. 30초 뒤 다시 시도합니다.');
@@ -1996,6 +2136,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     $('pwCancel').addEventListener('click', closePw);
     $('xoQuick').addEventListener('click', function (e) { var b = e.target.closest('button[data-n]'); if (b) $('xoNote').value = b.getAttribute('data-n'); });
     window.addEventListener('resize', fitTop);
+    $('neForm').addEventListener('submit', saveNotice);
+    $('neCancel').addEventListener('click', function () { $('ne').hidden = true; });
+    $('neDel').addEventListener('click', deleteNotice);
+    renderNotices();
     $('xoClose').addEventListener('click', function () { $('xo').hidden = true; });
     $('xoAdd').addEventListener('click', function () {
       var d = $('xoDate').value;
