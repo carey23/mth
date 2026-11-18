@@ -925,7 +925,6 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     var dim = !mgrMatch(e.id) || !desMatch(e);
     return h('div', { role: 'button', tabindex: '0', draggable: 'true', class: 'ent' + (dim ? ' dim' : ''), 'data-id': e.id, title: (e.type || '') + ' · ' + e.title + (mgrOf(e.id) ? ' · 담당 ' + mgrOf(e.id) : '') + (e.designer ? ' · 내지 ' + e.designer : '') + ((orderOf(e.id) || {}).coverDesigner ? ' · 표지 ' + orderOf(e.id).coverDesigner : '') },
       typeTag(e.type), ' ', h('span', { text: e.title }), ' ', mtag(mgrOf(e.id)),
-      e.history ? h('span', { class: 'hs', text: e.history }) : null,
       (orderOf(e.id) || {}).confirmed ? miniStamp() : null);
   }
   function miniStamp() { var s2 = h('span', { class: 'okm', title: '상무님 확인 완료' }); s2.innerHTML = stampSvg(true); var w = h('span', { class: 'okmw' }, s2, handEl(0)); return w; }
