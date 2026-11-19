@@ -158,7 +158,7 @@ h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-sp
 .nb-act { margin-left: auto; display: flex; gap: 6px; }
 .nb-act button { font: inherit; font-size: 12.5px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 3px 12px; }
 .nb-act button:hover { background: var(--hover); }
-.nb-row { display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 10px 18px; border: 0; border-bottom: 1px solid var(--hair); background: none; }
+.nb-row { display: grid; grid-template-columns: 2.4rem 5.4rem 3.2rem minmax(0, 1fr); align-items: center; gap: 4px 12px; width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 10px 18px; border: 0; border-bottom: 1px solid var(--hair); background: none; }
 .nb-row:last-child { border-bottom: 0; }
 .nb-row:hover { background: var(--hover); }
 .nb-tag { justify-self: center; font-size: 11.5px; font-weight: 800; padding: 1px 0; width: 3rem; text-align: center; border-radius: 999px; background: var(--head); color: var(--muted); }
@@ -167,11 +167,22 @@ h1 { margin: 0; font-size: clamp(24px, 4.6vw, 34px); font-weight: 700; letter-sp
 .nb-row.pin .nb-ti { font-weight: 800; }
 .nb-new { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 800; padding: 0 5px; border-radius: 4px; background: var(--accent); color: var(--accent-ink); vertical-align: 1px; }
 .nb-dt { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.nb-no { font-size: 13px; font-weight: 700; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+.nb-ttl { margin: 0; font: inherit; font-size: 15.5px; font-weight: 700; letter-spacing: -.2px; border: 0; background: none; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 8px; }
+.nb-ttl:hover { background: var(--hover); }
+.nb-ttl .ar { color: var(--muted); font-weight: 400; font-size: 12.5px; }
+.nl-tools { display: flex; gap: 8px; align-items: center; }
+.nl-tools input { flex: 1; min-width: 0; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font: inherit; }
+.nl-list { border: 1px solid var(--hair); border-radius: 12px; overflow: hidden; max-height: min(60vh, 520px); overflow-y: auto; }
+.nl-list .nb-row, .nl-head { grid-template-columns: 2.6rem 5.6rem 3.2rem minmax(0, 1fr) 5rem; padding: 9px 14px; }
+.nl-head { display: grid; gap: 4px 12px; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--head); position: sticky; top: 0; z-index: 1; }
+.nl-head span:nth-child(1) { text-align: center; }
+.nl-au { font-size: 12.5px; color: var(--muted); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nb-empty { padding: 16px 18px; color: var(--muted); font-size: 13.5px; }
 .nv-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; color: var(--muted); font-size: 13px; }
 .nv-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75; font-size: 15px; padding: 14px 16px; background: var(--bg); border: 1px solid var(--hair); border-radius: 12px; min-height: 5rem; }
 .nv-body a { color: var(--accent); }
-@media (max-width: 560px) { .nb-row { grid-template-columns: 2.8rem minmax(0, 1fr); } .nb-dt { grid-column: 2; } .ctrl { padding: 4px 12px; } }
+@media (max-width: 560px) { .nb-row, .nl-list .nb-row { grid-template-columns: 2rem 4.6rem minmax(0, 1fr); } .nb-tag { display: none; } .nl-head span:nth-child(3), .nl-head span:nth-child(5), .nl-au { display: none; } .nl-head { grid-template-columns: 2rem 4.6rem minmax(0, 1fr); } .ctrl { padding: 4px 12px; } }
 @media print { .nboard { display: none; } .ctrl { border: 0; box-shadow: none; padding: 0; } }
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; justify-content: space-between; }
 .tabs { display: inline-flex; gap: 2px; padding: 3px; background: var(--head); border-radius: 999px; }
@@ -633,6 +644,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <p class="err" id="pwErr" role="alert"></p>
     <div class="acts"><button type="submit" class="btn pri">확인</button><button type="button" class="btn" id="pwCancel">취소</button></div>
   </form>
+</div>
+<div class="modal" id="nl" hidden>
+  <div class="sheet wide" id="nlSheet" role="dialog" aria-modal="true" aria-label="공지사항 전체 목록" style="max-width:820px"></div>
 </div>
 <div class="modal" id="nv" hidden>
   <div class="sheet wide" id="nvSheet" role="dialog" aria-modal="true"></div>
@@ -1937,25 +1951,53 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function renderNotices() {
     var box = $('noticeBoard');
     box.textContent = '';
-    box.appendChild(h('div', { class: 'nb-head' }, h('h2', { text: '📢 공지사항' }), notices.length ? h('span', { class: 'nb-cnt', text: String(notices.length) }) : null,
+    box.appendChild(h('div', { class: 'nb-head' },
+      h('button', { type: 'button', class: 'nb-ttl', title: '모든 공지사항을 목록으로 봅니다', onclick: openNoticeList }, h('span', { text: '📢 공지사항' }), notices.length ? h('span', { class: 'nb-cnt', text: String(notices.length) }) : null, h('span', { class: 'ar', text: '전체 목록 ›' })),
       h('div', { class: 'nb-act' },
-        notices.length > NOTICE_SHOW ? h('button', { type: 'button', text: noticeAll ? '접기' : '전체 보기', onclick: function () { noticeAll = !noticeAll; renderNotices(); } }) : null,
+        notices.length > NOTICE_SHOW ? h('button', { type: 'button', text: '전체 목록 (' + notices.length + ')', onclick: openNoticeList }) : null,
         h('button', { type: 'button', text: '＋ 글쓰기', title: '관리자 전용', onclick: function () { openNoticeEditor(null); } }))));
     if (noticeErr) { box.appendChild(h('div', { class: 'nb-empty', text: '공지사항 기능이 아직 설정되지 않았습니다. (설정 SQL 실행 필요)' })); return; }
     if (!notices.length) { box.appendChild(h('div', { class: 'nb-empty', text: '등록된 공지사항이 없습니다.' })); return; }
-    (noticeAll ? notices : notices.slice(0, NOTICE_SHOW)).forEach(function (n) {
-      box.appendChild(h('button', { type: 'button', class: 'nb-row' + (n.pinned ? ' pin' : ''), onclick: function () { openNotice(n.id); } },
-        h('span', { class: 'nb-tag', text: n.pinned ? '중요' : '공지' }),
-        h('span', { class: 'nb-ti' }, n.title, nIsNew(n.created_at) ? h('span', { class: 'nb-new', text: 'NEW' }) : null),
-        h('span', { class: 'nb-dt', text: nDate(n.created_at) })));
-    });
+    notices.slice(0, NOTICE_SHOW).forEach(function (n) { box.appendChild(noticeRow(n, false)); });
+  }
+  function noticeRow(n, withAuthor) {
+    return h('button', { type: 'button', class: 'nb-row' + (n.pinned ? ' pin' : ''), onclick: function () { openNotice(n.id, withAuthor); } },
+      h('span', { class: 'nb-no', text: String(n.no) }),
+      h('span', { class: 'nb-dt', text: nDate(n.created_at) }),
+      h('span', { class: 'nb-tag', text: n.pinned ? '중요' : '공지' }),
+      h('span', { class: 'nb-ti' }, n.title, nIsNew(n.created_at) ? h('span', { class: 'nb-new', text: 'NEW' }) : null),
+      withAuthor ? h('span', { class: 'nl-au', text: n.author || '' }) : null);
+  }
+  var nlQuery = '';
+  function openNoticeList() {
+    nlQuery = '';
+    renderNoticeList();
+    $('nl').hidden = false;
+  }
+  function renderNoticeList() {
+    var box = $('nlSheet');
+    box.textContent = '';
+    var q = nlQuery.trim().replace(/\s+/g, '').toLowerCase();
+    var all = notices.slice().sort(function (a, b) { return b.no - a.no; });
+    var list = !q ? all : all.filter(function (n) { return (String(n.no) + n.title + (n.author || '') + (n.body || '')).replace(/\s+/g, '').toLowerCase().indexOf(q) >= 0; });
+    box.appendChild(h('div', { class: 'dy-head' }, h('h2', { text: '📢 공지사항 전체 목록' }), h('span', { class: 'dy-cnt', text: '총 ' + notices.length + '건' + (q ? ' · 검색 ' + list.length + '건' : '') })));
+    var inp = h('input', { type: 'search', placeholder: '제목, 내용, 번호, 작성자 검색', 'aria-label': '공지 검색', value: nlQuery });
+    inp.addEventListener('input', function () { nlQuery = inp.value; var pos = inp.selectionStart; renderNoticeList(); var again = $('nlSheet').querySelector('input'); again.focus(); try { again.setSelectionRange(pos, pos); } catch (x) { /* 무시 */ } });
+    box.appendChild(h('div', { class: 'nl-tools' }, inp));
+    var wrap = h('div', { class: 'nl-list' }, h('div', { class: 'nl-head' }, h('span', { text: '번호' }), h('span', { text: '등록일' }), h('span', { text: '구분' }), h('span', { text: '제목' }), h('span', { text: '작성자', style: 'text-align:right' })));
+    if (!list.length) wrap.appendChild(h('div', { class: 'nb-empty', text: notices.length ? '검색 결과가 없습니다.' : '등록된 공지사항이 없습니다.' }));
+    list.forEach(function (n) { wrap.appendChild(noticeRow(n, true)); });
+    box.appendChild(wrap);
+    box.appendChild(h('div', { class: 'acts' }, h('button', { type: 'button', class: 'btn pri', text: '닫기', onclick: function () { $('nl').hidden = true; } })));
   }
   function loadNotices() {
     return sb.from('notices').select('*').then(function (r) {
       if (r.error) { noticeErr = true; notices = []; }
       else {
         noticeErr = false;
-        notices = r.data.slice().sort(function (a, b) { return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || new Date(b.created_at) - new Date(a.created_at); });
+        var asc = r.data.slice().sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at) || a.id - b.id; });
+        asc.forEach(function (n, i) { n.no = i + 1; });
+        notices = r.data.slice().sort(function (a, b) { return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.no - a.no; });
       }
       renderNotices();
     }, function () { noticeErr = true; renderNotices(); });
@@ -1968,17 +2010,18 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     });
     return out;
   }
-  function openNotice(id) {
+  function openNotice(id, fromList) {
     var n = notices.filter(function (x) { return x.id === id; })[0];
     if (!n) return;
     var box = $('nvSheet');
     box.textContent = '';
-    box.appendChild(h('div', { class: 'nv-meta' }, h('span', { class: 'nb-tag', style: n.pinned ? 'background:#e0364c;color:#fff' : '', text: n.pinned ? '중요' : '공지' }), h('span', { text: nDate(n.created_at) }), n.author ? h('span', { text: '작성 ' + n.author }) : null,
+    box.appendChild(h('div', { class: 'nv-meta' }, h('span', { class: 'nb-tag', style: (n.pinned ? 'background:#e0364c;color:#fff;' : '') + 'width:auto;padding:1px 10px', text: n.pinned ? '중요' : '공지' }), h('b', { text: '제' + n.no + '호' }), h('span', { text: nDate(n.created_at) }), n.author ? h('span', { text: '작성 ' + n.author }) : null,
       n.updated_at && nDate(n.updated_at) !== nDate(n.created_at) ? h('span', { text: '(수정 ' + nDate(n.updated_at) + ')' }) : null));
     box.appendChild(h('h2', { text: n.title, style: 'font-size:21px;margin:0' }));
     box.appendChild(h('div', { class: 'nv-body' }, linkify(n.body || '')));
     box.appendChild(h('div', { class: 'acts' },
-      h('button', { type: 'button', class: 'btn', text: '수정 (관리자)', onclick: function () { $('nv').hidden = true; openNoticeEditor(n); } }),
+      fromList ? h('button', { type: 'button', class: 'btn', text: '← 전체 목록', onclick: function () { $('nv').hidden = true; } }) : null,
+      h('button', { type: 'button', class: 'btn', text: '수정 (관리자)', onclick: function () { $('nv').hidden = true; $('nl').hidden = true; openNoticeEditor(n); } }),
       h('button', { type: 'button', class: 'btn pri', text: '닫기', onclick: function () { $('nv').hidden = true; } })));
     $('nv').hidden = false;
   }
