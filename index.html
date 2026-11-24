@@ -1614,6 +1614,27 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   }
   // 발주도서 정보 저장 (book_orders 테이블, 도서 항목 id로 연결)
   var confirmReset = false;
+  var confirmKept = false;
+  /* 인쇄소(거래처 박스) 항목은 상무님 확인 뒤에 채우므로, 이 항목만 바뀐 저장은 확인 도장을 유지한다 */
+  var VENDOR_KEYS = ['vendorInner', 'vendorCover', 'innerColor', 'prodNote'];
+  function canon(v) {
+    if (v == null || v === '' || v === false) return '';
+    if (Array.isArray(v)) return v.map(canon);
+    if (typeof v === 'object') { var o = {}; Object.keys(v).sort().forEach(function (k) { var c = canon(v[k]); if (c !== '') o[k] = c; }); return o; }
+    return v;
+  }
+  function confirmChanged(oldD, newD, oldEntry, newDate) {
+    if (oldEntry && oldEntry.date !== newDate) return true;
+    var skip = VENDOR_KEYS.concat(['confirmed', 'confirmedAt', 'lastEditor', 'archived', 'entryId']);
+    var keys = {};
+    Object.keys(oldD).concat(Object.keys(newD)).forEach(function (k) { if (skip.indexOf(k) < 0) keys[k] = 1; });
+    return Object.keys(keys).some(function (k) {
+      var a = oldD[k], b = newD[k];
+      if (k === 'workTool' && !a) a = 'InD';
+      if (k === 'attachments') { a = (a || []).map(function (x) { return x.path; }); b = (b || []).map(function (x) { return x.path; }); }
+      return JSON.stringify(canon(a)) !== JSON.stringify(canon(b));
+    });
+  }
   function saveBook(entryId, date, title, editorName) {
     var b = collectBook();
     var old = orders.get(entryId);
@@ -1626,7 +1647,10 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       var atts = edAtt.concat(uploaded);
       if (!old && !bookHasContent(b, atts)) return null;
       var data = Object.assign({}, old ? old.data : {}, b, { title: title, entryId: entryId, attachments: atts, lastEditor: editorName || '' });
-      if (old && old.data.confirmed) { data.confirmed = false; data.confirmedAt = ''; confirmReset = true; }
+      if (old && old.data.confirmed) {
+        if (confirmChanged(old.data, data, entries.get(entryId), date)) { data.confirmed = false; data.confirmedAt = ''; confirmReset = true; }
+        else if (VENDOR_KEYS.some(function (k) { return JSON.stringify(canon(old.data[k])) !== JSON.stringify(canon(data[k])); })) confirmKept = true;
+      }
       var q = old
         ? sb.from('book_orders').update({ order_date: date, data: data, updated_at: new Date().toISOString() }).eq('id', old.id)
         : sb.from('book_orders').insert({ order_date: date, data: data });
@@ -1674,8 +1698,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       saving = false;
       $('edSave').disabled = false;
       closeEditor();
-      if (okBook) toast(confirmReset ? '저장했습니다. 내용이 바뀌어 상무님 확인은 해제되었습니다.' : '저장했습니다.');
+      if (okBook) toast(confirmReset ? '저장했습니다. 내용이 바뀌어 상무님 확인은 해제되었습니다.' : confirmKept ? '저장했습니다. 인쇄소(거래처) 정보만 바뀌어 상무님 확인은 유지됩니다.' : '저장했습니다.');
       confirmReset = false;
+      confirmKept = false;
       refresh();
     }, function (e) {
       saving = false;
