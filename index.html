@@ -505,12 +505,12 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .rsec.open .rpanel { grid-template-rows: 1fr; opacity: 1; transform: none; filter: none; }
 .rclip { overflow: hidden; min-height: 0; }
 .rin { padding: 4px 18px 18px; }
-.rsec.open .rin > * { animation: rrise .6s both cubic-bezier(.22, .9, .25, 1); }
-.rsec.open .rin > *:nth-child(1) { animation-delay: .08s; }
-.rsec.open .rin > *:nth-child(2) { animation-delay: .16s; }
-.rsec.open .rin > *:nth-child(3) { animation-delay: .24s; }
-.rsec.open .rin > *:nth-child(4) { animation-delay: .32s; }
-.rsec.open .rin > *:nth-child(5) { animation-delay: .4s; }
+.rsec.open.anim .rin > * { animation: rrise .6s both cubic-bezier(.22, .9, .25, 1); }
+.rsec.open.anim .rin > *:nth-child(1) { animation-delay: .08s; }
+.rsec.open.anim .rin > *:nth-child(2) { animation-delay: .16s; }
+.rsec.open.anim .rin > *:nth-child(3) { animation-delay: .24s; }
+.rsec.open.anim .rin > *:nth-child(4) { animation-delay: .32s; }
+.rsec.open.anim .rin > *:nth-child(5) { animation-delay: .4s; }
 @keyframes rrise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 .rhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 10px; }
 .rhead h3 { margin: 0; font-size: 17px; flex: 1; min-width: 150px; }
@@ -532,7 +532,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .rwd.sel.sun small, .rwd.sel.sun b, .rwd.sel.sat small, .rwd.sel.sat b { color: inherit; }
 .rtl { position: relative; }
 .rtl-h { position: relative; height: 18px; font-size: 11px; color: var(--muted); }
-.rtl-h span { position: absolute; transform: translateX(-50%); }
+.rtl-h span { position: absolute; transform: translateX(-50%); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.rtl-h span.hf { opacity: .75; }
+@media (max-width: 700px) { .rtl-h span.hf { display: none; } }
 .rtrack { position: relative; height: 74px; border: 1px solid var(--hair); border-radius: 14px; background: var(--bg); cursor: crosshair; touch-action: pan-y; user-select: none; -webkit-user-select: none;
   background-image: linear-gradient(to right, var(--hair) 1px, transparent 1px), linear-gradient(to right, rgba(128, 128, 140, .16) 1px, transparent 1px);
   background-size: calc(100% / 10) 100%, calc(100% / 20) 100%; }
@@ -558,7 +560,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .rwarn { margin: 6px 0 4px; padding: 14px; border-radius: 12px; background: var(--hover); font-size: 13.5px; line-height: 1.6; }
 .rm-time { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 @media (max-width: 560px) { .rli { grid-template-columns: 96px 1fr; } .rli .who { display: none; } .rwrap { width: 100%; } }
-@media (prefers-reduced-motion: reduce) { .rwrap, .rpanel, .rch { transition: none; } .rsec.open .rin > *, .rblk, .rpill .rdot { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .rwrap, .rpanel, .rch { transition: none; } .rsec.open.anim .rin > *, .rblk, .rpill .rdot { animation: none; } }
 
 .rpill:not(.busy):not(.off) { background: linear-gradient(100deg, transparent 0%, transparent 40%, rgba(47, 179, 122, .22) 50%, transparent 60%, transparent 100%) 0 0 / 250% 100% no-repeat; animation: rshine 2.8s ease-in-out infinite; }
 .rpill:not(.busy):not(.off) .rt b { animation: rglow 1.8s ease-in-out infinite; }
@@ -569,7 +571,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .rvt { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
 .rvt button { border: 0; background: transparent; padding: 5px 13px; font: inherit; font-size: 13px; color: var(--ink); cursor: pointer; }
 .rvt button.on { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
-.rmg { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.rmg { display: grid; grid-template-columns: .55fr repeat(5, 1fr) .55fr; gap: 5px; }
+.rmc.sun, .rmc.sat { min-height: 84px; padding: 5px 3px; }
+.rmc.sun .c, .rmc.sat .c { font-size: 10px; padding: 1px 3px; }
 .rmg .dw { text-align: center; font-size: 12px; color: var(--muted); padding: 2px 0 4px; }
 .rmg .dw.sun { color: #d9344a; } .rmg .dw.sat { color: #3b6fe0; }
 .rmc { min-height: 84px; border: 1px solid var(--hair); background: var(--bg); border-radius: 12px; padding: 5px 6px; cursor: pointer; text-align: left; font: inherit; color: var(--ink); display: flex; flex-direction: column; gap: 3px; min-width: 0; transition: transform .2s, border-color .2s; }
@@ -2387,9 +2391,9 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       h('button', { type: 'button', class: 'btn rnav', text: '▶', 'aria-label': '다음 달', onclick: function () { room.day = dstr(new Date(d.getFullYear(), d.getMonth() + 1, 1)); renderRoomPanel(); } }),
       h('button', { type: 'button', class: 'btn pri', text: '＋ 예약', onclick: function () { openRoomEditor(null, room.day, null, null); } }));
     var g = h('div', { class: 'rmg' });
-    ['월', '화', '수', '목', '금', '토', '일'].forEach(function (x, i) { g.appendChild(h('div', { class: 'dw' + (i === 6 ? ' sun' : i === 5 ? ' sat' : ''), text: x })); });
-    var start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
-    var weeks = Math.ceil(((first.getDay() + 6) % 7 + new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()) / 7);
+    ['일', '월', '화', '수', '목', '금', '토'].forEach(function (x, i) { g.appendChild(h('div', { class: 'dw' + (i === 0 ? ' sun' : i === 6 ? ' sat' : ''), text: x })); });
+    var start = new Date(first); start.setDate(1 - first.getDay());
+    var weeks = Math.ceil((first.getDay() + new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()) / 7);
     for (var i = 0; i < weeks * 7; i++) {
       (function () {
         var x = new Date(start); x.setDate(start.getDate() + i);
@@ -2420,7 +2424,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       h('button', { type: 'button', class: 'btn', text: '오늘', onclick: function () { room.day = dstr(new Date()); renderRoomPanel(); } }),
       h('button', { type: 'button', class: 'btn rnav', text: '▶', 'aria-label': '다음 날', onclick: function () { rGo(1); } }),
       h('button', { type: 'button', class: 'btn pri', text: '＋ 예약', onclick: function () { openRoomEditor(null, room.day, null, null); } }));
-    var mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    var mon = new Date(d); mon.setDate(d.getDate() - d.getDay());
     var week = h('div', { class: 'rweek' });
     for (var i = 0; i < 7; i++) {
       (function () {
@@ -2432,7 +2436,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       })();
     }
     var hours = h('div', { class: 'rtl-h' });
-    for (var hh = R0 / 60; hh <= R1 / 60; hh += 1) hours.appendChild(h('span', { style: 'left:' + ((hh * 60 - R0) / (R1 - R0) * 100) + '%', text: hh }));
+    for (var mm = R0; mm <= R1; mm += 30) hours.appendChild(h('span', { class: mm % 60 ? 'hf' : '', style: 'left:' + ((mm - R0) / (R1 - R0) * 100) + '%', text: Math.floor(mm / 60) + ':' + pad(mm % 60) }));
     var track = h('div', { class: 'rtrack', id: 'rTrack' });
     var rows = rDay(room.day), nm = nowMin();
     rows.forEach(function (r) {
@@ -2576,6 +2580,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
   function toggleRoom(force) {
     room.open = force == null ? !room.open : force;
     $('roomSec').classList.toggle('open', room.open);
+    if (room.open) { $('roomSec').classList.add('anim'); setTimeout(function () { $('roomSec').classList.remove('anim'); }, 1300); }
     if (room.open) { room.day = room.day || dstr(new Date()); renderRoomPanel(); }
     renderRoomPill();
   }
