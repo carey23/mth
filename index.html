@@ -483,6 +483,83 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 .vw-chip { display: inline-block; background: var(--bg); border: 1px solid var(--hair); border-radius: 8px; padding: 6px 12px; margin: 0 6px 6px 0; color: var(--ink); text-decoration: none; font-size: 14px; }
 .vw-foot { font-size: 12.5px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 8px; }
 @media (max-width: 600px) { .vw-key { grid-template-columns: 1fr; } .vw-key > div { border-left: 0; border-top: 1px solid var(--hair); } .vw-key > div:first-child { border-top: 0; } .vw-grid { grid-template-columns: repeat(2, 1fr); } .cp-row .l2 { grid-template-columns: 1fr; } }
+
+/* ===== 회의실 예약 ===== */
+.rsec { margin: 0 0 14px; }
+.rwrap { width: 372px; max-width: 100%; background: var(--surface); border: 1px solid var(--hair); border-radius: 22px; box-shadow: var(--sh); overflow: hidden; transition: width .6s cubic-bezier(.22, .9, .25, 1), border-radius .6s, box-shadow .6s; }
+.rsec.open .rwrap { width: 100%; border-radius: 18px; }
+.rpill { display: flex; align-items: center; gap: 12px; width: 100%; border: 0; background: transparent; padding: 11px 16px; text-align: left; cursor: pointer; color: var(--ink); font: inherit; }
+.rpill:hover { background: var(--hover); }
+.rpill .rdot { width: 11px; height: 11px; border-radius: 50%; background: #2fb37a; flex: none; box-shadow: 0 0 0 0 rgba(47, 179, 122, .5); animation: rpulse 2.2s infinite; }
+.rpill.busy .rdot { background: #e0364c; box-shadow: 0 0 0 0 rgba(224, 54, 76, .5); }
+.rpill.off .rdot { background: var(--muted); animation: none; }
+@keyframes rpulse { 70% { box-shadow: 0 0 0 9px rgba(47, 179, 122, 0); } 100% { box-shadow: 0 0 0 0 rgba(47, 179, 122, 0); } }
+.rpill.busy .rdot { animation-name: rpulseb; }
+@keyframes rpulseb { 70% { box-shadow: 0 0 0 9px rgba(224, 54, 76, 0); } 100% { box-shadow: 0 0 0 0 rgba(224, 54, 76, 0); } }
+.rpill .rt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.rpill .rt b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rpill .rt small { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rpill .rch { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--hover); font-size: 11px; transition: transform .5s cubic-bezier(.22, .9, .25, 1); }
+.rsec.open .rch { transform: rotate(180deg); }
+.rpanel { display: grid; grid-template-rows: 0fr; opacity: 0; transform: translateY(-8px) scale(.985); filter: blur(6px); transition: grid-template-rows .6s cubic-bezier(.22, .9, .25, 1), opacity .45s ease, transform .6s cubic-bezier(.22, .9, .25, 1), filter .5s ease; }
+.rsec.open .rpanel { grid-template-rows: 1fr; opacity: 1; transform: none; filter: none; }
+.rclip { overflow: hidden; min-height: 0; }
+.rin { padding: 4px 18px 18px; }
+.rsec.open .rin > * { animation: rrise .6s both cubic-bezier(.22, .9, .25, 1); }
+.rsec.open .rin > *:nth-child(1) { animation-delay: .08s; }
+.rsec.open .rin > *:nth-child(2) { animation-delay: .16s; }
+.rsec.open .rin > *:nth-child(3) { animation-delay: .24s; }
+.rsec.open .rin > *:nth-child(4) { animation-delay: .32s; }
+.rsec.open .rin > *:nth-child(5) { animation-delay: .4s; }
+@keyframes rrise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+.rhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 10px; }
+.rhead h3 { margin: 0; font-size: 17px; flex: 1; min-width: 150px; }
+.rhead .btn { padding: 5px 13px; font-size: 13px; }
+.rnav { width: 32px; padding: 5px 0 !important; text-align: center; }
+.rweek { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; }
+.rwd { border: 1px solid var(--hair); background: var(--bg); border-radius: 12px; padding: 6px 2px 7px; text-align: center; cursor: pointer; font: inherit; color: var(--ink); transition: transform .2s, background .2s, border-color .2s; }
+.rwd:hover { transform: translateY(-2px); border-color: var(--accent); }
+.rwd small { display: block; color: var(--muted); font-size: 11px; }
+.rwd b { font-size: 15px; }
+.rwd i { display: block; height: 5px; margin-top: 3px; }
+.rwd i span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); margin: 0 1px; }
+.rwd.sel { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.rwd.sel small { color: inherit; opacity: .8; }
+.rwd.sel i span { background: var(--accent-ink); }
+.rwd.today b::after { content: '·'; color: #e0364c; }
+.rwd.sun small, .rwd.sun b { color: #d9344a; }
+.rwd.sat small, .rwd.sat b { color: #3b6fe0; }
+.rwd.sel.sun small, .rwd.sel.sun b, .rwd.sel.sat small, .rwd.sel.sat b { color: inherit; }
+.rtl { position: relative; }
+.rtl-h { position: relative; height: 18px; font-size: 11px; color: var(--muted); }
+.rtl-h span { position: absolute; transform: translateX(-50%); }
+.rtrack { position: relative; height: 74px; border: 1px solid var(--hair); border-radius: 14px; background: var(--bg); cursor: crosshair; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  background-image: linear-gradient(to right, var(--hair) 1px, transparent 1px), linear-gradient(to right, rgba(128, 128, 140, .16) 1px, transparent 1px);
+  background-size: calc(100% / 14) 100%, calc(100% / 28) 100%; }
+.rtrack:hover { border-color: var(--accent); }
+.rblk { position: absolute; top: 6px; bottom: 6px; border-radius: 10px; padding: 5px 8px; overflow: hidden; cursor: pointer; background: hsl(var(--h) 75% 55% / .18); border-left: 4px solid hsl(var(--h) 65% 52%); color: var(--ink); font-size: 12px; line-height: 1.3; transition: transform .2s, box-shadow .2s; animation: rpop .45s both cubic-bezier(.2, .9, .3, 1.2); }
+.rblk:hover { transform: translateY(-2px); box-shadow: 0 6px 14px -6px hsl(var(--h) 65% 40% / .6); z-index: 2; }
+.rblk b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rblk small { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+@keyframes rpop { from { opacity: 0; transform: scaleX(.6); } to { opacity: 1; transform: none; } }
+.rghost { position: absolute; top: 4px; bottom: 4px; border-radius: 10px; background: var(--accent); opacity: .28; border: 2px dashed var(--accent); pointer-events: none; }
+.rnow { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #e0364c; z-index: 3; pointer-events: none; }
+.rnow::before { content: ''; position: absolute; top: -3px; left: -3px; width: 8px; height: 8px; border-radius: 50%; background: #e0364c; }
+.rhint { margin: 8px 2px 0; color: var(--muted); font-size: 12px; }
+.rlist { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.rli { display: grid; grid-template-columns: 112px 1fr auto; gap: 10px; align-items: center; padding: 9px 12px; border: 1px solid var(--hair); border-radius: 12px; background: var(--bg); cursor: pointer; border-left: 4px solid hsl(var(--h) 65% 52%); transition: background .2s; }
+.rli:hover { background: var(--hover); }
+.rli .tm { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 13px; }
+.rli .tt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.rli .tt small { color: var(--muted); margin-left: 6px; }
+.rli .who { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: hsl(var(--h) 75% 55% / .2); }
+.rli.now { box-shadow: 0 0 0 2px #e0364c inset; }
+.rempty { text-align: center; color: var(--muted); padding: 14px 0 2px; font-size: 13.5px; }
+.rwarn { margin: 6px 0 4px; padding: 14px; border-radius: 12px; background: var(--hover); font-size: 13.5px; line-height: 1.6; }
+.rm-time { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .rli { grid-template-columns: 96px 1fr; } .rli .who { display: none; } .rwrap { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .rwrap, .rpanel, .rch { transition: none; } .rsec.open .rin > *, .rblk, .rpill .rdot { animation: none; } }
+@media print { .rsec { display: none; } }
 </style>
 </head>
 <body>
@@ -494,6 +571,12 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     <div class="sub" id="sub"></div>
   </header>
 
+  <section class="rsec" id="roomSec" aria-label="회의실 예약">
+    <div class="rwrap" id="rWrap">
+      <button type="button" class="rpill" id="rPill" aria-expanded="false" aria-controls="rPanel"></button>
+      <div class="rpanel" id="rPanel"><div class="rclip"><div class="rin" id="rIn"></div></div></div>
+    </div>
+  </section>
   <section class="nboard" id="noticeBoard" aria-label="공지사항"></section>
 
   <div class="ctrl">
@@ -647,6 +730,26 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
 </div>
 <div class="modal" id="nl" hidden>
   <div class="sheet wide" id="nlSheet" role="dialog" aria-modal="true" aria-label="공지사항 전체 목록" style="max-width:820px"></div>
+</div>
+<div class="modal" id="rm" hidden>
+  <form class="sheet" id="rmForm" autocomplete="off" aria-labelledby="rmHead">
+    <h2 id="rmHead">회의실 예약</h2>
+    <label class="f"><span>날짜</span><input type="date" id="rmDay" required></label>
+    <div class="rm-time">
+      <label class="f"><span>시작</span><select id="rmS"></select></label>
+      <label class="f"><span>종료</span><select id="rmE"></select></label>
+    </div>
+    <label class="f"><span>회의명</span><input type="text" id="rmTitle" maxlength="60" placeholder="예: 주간 편집회의"></label>
+    <label class="f"><span>예약자</span><input type="text" id="rmBooker" maxlength="20" list="rmBookers" placeholder="이름"></label>
+    <datalist id="rmBookers"></datalist>
+    <label class="f"><span>메모 (선택)</span><input type="text" id="rmNote" maxlength="100" placeholder="참석자, 준비물 등"></label>
+    <div class="err" id="rmErr" role="alert"></div>
+    <div class="acts">
+      <button type="button" class="btn del" id="rmDel" hidden>삭제</button>
+      <button type="button" class="btn" id="rmCancel">취소</button>
+      <button type="submit" class="btn pri">저장</button>
+    </div>
+  </form>
 </div>
 <div class="modal" id="nv" hidden>
   <div class="sheet wide" id="nvSheet" role="dialog" aria-modal="true"></div>
@@ -2143,6 +2246,7 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
       render();
       loadOff();
       loadNotices();
+      loadRoom();
       if (!live) setStatus('ok', '연결됨');
     }, function () {
       setStatus('err', '불러오지 못했습니다. 30초 뒤 다시 시도합니다.');
@@ -2205,12 +2309,217 @@ fieldset.f { border: 0; margin: 0; padding: 0; }
     });
     $('noteEl').addEventListener('click', function () { if (!canWrite) openPw(); });
   }
+  /* ===== 회의실 예약 ===== */
+  var R0 = 420, R1 = 1260, RN = (R1 - R0) / 30;
+  var room = { open: false, day: '', rows: [], ok: true, err: '' };
+  var rmId = null;
+  var rmArm = false;
+  function dstr(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function dparse(t) { var a = t.split('-'); return new Date(+a[0], +a[1] - 1, +a[2]); }
+  function mmTxt(m) { return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  function rHue(name) { var x = 0, t = name || '?'; for (var i = 0; i < t.length; i++) x = (x * 31 + t.charCodeAt(i)) % 360; return x; }
+  function rDay(t) { return room.rows.filter(function (r) { return r.day === t; }).sort(function (a, b) { return a.start_min - b.start_min; }); }
+  function nowMin() { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  function rLabel(t) { var d = dparse(t), td = dstr(new Date()), tm = dstr(new Date(Date.now() + 864e5)); return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 (' + DOW[d.getDay()] + ')' + (t === td ? ' · 오늘' : t === tm ? ' · 내일' : ''); }
+
+  function renderRoomPill() {
+    var pill = $('rPill');
+    var td = dstr(new Date()), nm = nowMin(), cls = 'rpill', main, sub;
+    if (!room.ok) { cls += ' off'; main = '회의실 예약'; sub = '설정 SQL 실행이 필요합니다'; }
+    else {
+      var rows = rDay(td);
+      var cur = rows.filter(function (r) { return r.start_min <= nm && nm < r.end_min; })[0];
+      var nxt = rows.filter(function (r) { return r.start_min > nm; })[0];
+      if (cur) { cls += ' busy'; main = '회의실 사용 중 · ' + cur.title; sub = mmTxt(cur.start_min) + '~' + mmTxt(cur.end_min) + (cur.booker ? ' · ' + cur.booker : '') + (nxt ? ' · 다음 ' + mmTxt(nxt.start_min) : ''); }
+      else if (nxt) { main = '회의실 지금 비어 있음'; sub = '다음 예약 ' + mmTxt(nxt.start_min) + ' · ' + nxt.title; }
+      else { main = '회의실 지금 비어 있음'; sub = rows.length ? '오늘 예약은 모두 끝났어요' : '오늘 예약 없음 · 눌러서 예약하기'; }
+    }
+    pill.className = cls;
+    pill.textContent = '';
+    pill.appendChild(h('span', { class: 'rdot' }));
+    pill.appendChild(h('span', { class: 'rt' }, h('b', { text: '🗓 ' + main }), h('small', { text: sub })));
+    pill.appendChild(h('span', { class: 'rch', text: '▼' }));
+    pill.setAttribute('aria-expanded', room.open ? 'true' : 'false');
+  }
+
+  function renderRoomPanel() {
+    var box = $('rIn');
+    box.textContent = '';
+    if (!room.ok) {
+      box.appendChild(h('div', { class: 'rwarn' }, '회의실 예약 기능을 처음 켜려면 Supabase SQL Editor에서 ', h('b', { text: 'room_setup.sql' }), ' 을 한 번만 실행해 주세요. 그 뒤로는 누구나 바로 예약할 수 있습니다.'));
+      return;
+    }
+    var d = dparse(room.day), td = dstr(new Date());
+    var head = h('div', { class: 'rhead' },
+      h('h3', { text: rLabel(room.day) }),
+      h('button', { type: 'button', class: 'btn rnav', text: '◀', 'aria-label': '이전 날', onclick: function () { rGo(-1); } }),
+      h('button', { type: 'button', class: 'btn', text: '오늘', onclick: function () { room.day = dstr(new Date()); renderRoomPanel(); } }),
+      h('button', { type: 'button', class: 'btn rnav', text: '▶', 'aria-label': '다음 날', onclick: function () { rGo(1); } }),
+      h('button', { type: 'button', class: 'btn pri', text: '＋ 예약', onclick: function () { openRoomEditor(null, room.day, null, null); } }));
+    var mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    var week = h('div', { class: 'rweek' });
+    for (var i = 0; i < 7; i++) {
+      (function () {
+        var x = new Date(mon); x.setDate(mon.getDate() + i);
+        var t = dstr(x), c = rDay(t).length, dots = h('i');
+        for (var k = 0; k < Math.min(c, 4); k++) dots.appendChild(h('span'));
+        week.appendChild(h('button', { type: 'button', class: 'rwd' + (t === room.day ? ' sel' : '') + (t === td ? ' today' : '') + (x.getDay() === 0 ? ' sun' : '') + (x.getDay() === 6 ? ' sat' : ''), onclick: function () { room.day = t; renderRoomPanel(); } },
+          h('small', { text: DOW[x.getDay()] }), h('b', { text: x.getDate() }), dots));
+      })();
+    }
+    var hours = h('div', { class: 'rtl-h' });
+    for (var hh = R0 / 60; hh <= R1 / 60; hh += 2) hours.appendChild(h('span', { style: 'left:' + ((hh * 60 - R0) / (R1 - R0) * 100) + '%', text: hh }));
+    var track = h('div', { class: 'rtrack', id: 'rTrack' });
+    var rows = rDay(room.day), nm = nowMin();
+    rows.forEach(function (r) {
+      var l = Math.max(r.start_min, R0), rr = Math.min(r.end_min, R1);
+      if (rr <= l) return;
+      track.appendChild(h('div', { class: 'rblk', style: 'left:' + ((l - R0) / (R1 - R0) * 100) + '%;width:' + ((rr - l) / (R1 - R0) * 100) + '%;--h:' + rHue(r.booker || r.title),
+        title: mmTxt(r.start_min) + '~' + mmTxt(r.end_min) + ' ' + r.title + (r.booker ? ' (' + r.booker + ')' : ''),
+        onpointerdown: function (ev) { ev.stopPropagation(); },
+        onclick: function (ev) { ev.stopPropagation(); openRoomEditor(r); } },
+        h('b', { text: r.title }), h('small', { text: (r.booker || '') + ' ' + mmTxt(r.start_min) })));
+    });
+    if (room.day === td && nm >= R0 && nm <= R1) track.appendChild(h('div', { class: 'rnow', style: 'left:' + ((nm - R0) / (R1 - R0) * 100) + '%' }));
+    wireTrack(track);
+    var list = h('ul', { class: 'rlist' });
+    rows.forEach(function (r) {
+      list.appendChild(h('li', { class: 'rli' + (room.day === td && r.start_min <= nm && nm < r.end_min ? ' now' : ''), style: '--h:' + rHue(r.booker || r.title), onclick: function () { openRoomEditor(r); } },
+        h('span', { class: 'tm', text: mmTxt(r.start_min) + ' ~ ' + mmTxt(r.end_min) }),
+        h('span', { class: 'tt' }, r.title, r.note ? h('small', { text: r.note }) : null),
+        r.booker ? h('span', { class: 'who', text: r.booker }) : h('span')));
+    });
+    box.appendChild(head);
+    box.appendChild(week);
+    box.appendChild(h('div', { class: 'rtl' }, hours, track, h('div', { class: 'rhint', text: '빈 시간대를 클릭하거나 드래그하면 예약창이 열립니다. 막대를 누르면 수정·삭제할 수 있어요.' })));
+    box.appendChild(rows.length ? list : h('div', { class: 'rempty', text: '이 날은 예약이 없습니다. 첫 예약을 남겨보세요 ✨' }));
+  }
+  function rGo(n) { var d = dparse(room.day); d.setDate(d.getDate() + n); room.day = dstr(d); renderRoomPanel(); }
+
+  function wireTrack(track) {
+    var drag = null, ghost = null;
+    function slotAt(ev) { var r = track.getBoundingClientRect(); var x = Math.min(Math.max(ev.clientX - r.left, 0), r.width - 1); return Math.floor(x / r.width * RN); }
+    function paint() {
+      if (!ghost) { ghost = h('div', { class: 'rghost' }); track.appendChild(ghost); }
+      var a = Math.min(drag.a, drag.b), b = Math.max(drag.a, drag.b) + 1;
+      ghost.style.left = (a / RN * 100) + '%'; ghost.style.width = ((b - a) / RN * 100) + '%';
+    }
+    track.addEventListener('pointerdown', function (ev) {
+      if (ev.button > 0) return;
+      drag = { a: slotAt(ev), b: slotAt(ev) };
+      try { track.setPointerCapture(ev.pointerId); } catch (e) { /* 무시 */ }
+      paint();
+    });
+    track.addEventListener('pointermove', function (ev) { if (!drag) return; drag.b = slotAt(ev); paint(); });
+    track.addEventListener('pointercancel', function () { drag = null; if (ghost) { ghost.remove(); ghost = null; } });
+    track.addEventListener('pointerup', function (ev) {
+      if (!drag) return;
+      var a = Math.min(drag.a, drag.b), b = Math.max(drag.a, drag.b) + 1;
+      drag = null;
+      if (ghost) { ghost.remove(); ghost = null; }
+      if (b - a === 1) b = Math.min(a + 2, RN);
+      var s0 = R0 + a * 30, e0 = R0 + b * 30;
+      openRoomEditor(null, room.day, s0, e0);
+    });
+  }
+
+  function fillTimeSel(sel, from, to, val) {
+    sel.textContent = '';
+    for (var m = from; m <= to; m += 30) sel.appendChild(h('option', { value: m, text: mmTxt(m) }));
+    sel.value = String(val);
+  }
+  function openRoomEditor(r, day, s0, e0) {
+    rmId = r ? r.id : null;
+    rmArm = false;
+    var st = r ? r.start_min : (s0 != null ? s0 : Math.min(Math.max(Math.ceil(nowMin() / 30) * 30, R0), R1 - 60));
+    var en = r ? r.end_min : (e0 != null ? e0 : Math.min(st + 60, R1));
+    $('rmHead').textContent = r ? '예약 수정' : '회의실 예약';
+    $('rmDay').value = r ? r.day : (day || room.day);
+    fillTimeSel($('rmS'), 360, 1290 - 30, st);
+    fillTimeSel($('rmE'), 390, 1290, en);
+    $('rmTitle').value = r ? r.title : '';
+    var last = ''; try { last = localStorage.getItem('room.booker') || ''; } catch (e) { last = ''; }
+    $('rmBooker').value = r ? r.booker || '' : last;
+    $('rmNote').value = r ? r.note || '' : '';
+    $('rmErr').textContent = '';
+    var del = $('rmDel'); del.hidden = !r; del.textContent = '삭제'; del.classList.remove('arm');
+    var names = {}; MANAGERS.forEach(function (n) { names[n] = 1; });
+    room.rows.forEach(function (x) { if (x.booker) names[x.booker] = 1; });
+    var dl = $('rmBookers'); dl.textContent = '';
+    Object.keys(names).forEach(function (n) { dl.appendChild(h('option', { value: n })); });
+    $('rm').hidden = false;
+    setTimeout(function () { $('rmTitle').focus(); }, 60);
+  }
+  function roomErr(e) {
+    var m = (e && (e.message || e.details)) || '';
+    if (/overlap/i.test(m)) return '이미 예약된 시간과 겹칩니다. 다른 시간으로 바꿔주세요.';
+    if (/does not exist|schema cache|42P01|PGRST205/i.test(m + ' ' + (e && e.code || ''))) return '회의실 예약 설정(room_setup.sql)이 아직 실행되지 않았습니다.';
+    return '저장하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+  function saveRoom(ev) {
+    ev.preventDefault();
+    var day = $('rmDay').value, s0 = +$('rmS').value, e0 = +$('rmE').value, title = $('rmTitle').value.trim(), booker = $('rmBooker').value.trim();
+    var err = $('rmErr');
+    if (!day) { err.textContent = '날짜를 선택해 주세요.'; return; }
+    if (e0 <= s0) { err.textContent = '종료 시간이 시작 시간보다 늦어야 합니다.'; return; }
+    if (!title) { err.textContent = '회의명을 입력해 주세요.'; $('rmTitle').focus(); return; }
+    var hit = rDay(day).filter(function (r) { return r.id !== rmId && r.start_min < e0 && s0 < r.end_min; })[0];
+    if (hit) { err.textContent = '이미 예약된 시간과 겹칩니다 (' + mmTxt(hit.start_min) + '~' + mmTxt(hit.end_min) + ' ' + hit.title + ').'; return; }
+    var row = { day: day, start_min: s0, end_min: e0, title: title, booker: booker, note: $('rmNote').value.trim() };
+    var q = rmId ? sb.from('room_bookings').update(row).eq('id', rmId) : sb.from('room_bookings').insert(row);
+    q.then(function (r) {
+      if (r.error) { err.textContent = roomErr(r.error); return; }
+      try { if (booker) localStorage.setItem('room.booker', booker); } catch (e) { /* 무시 */ }
+      $('rm').hidden = true;
+      room.day = day;
+      toast(rmId ? '예약을 수정했습니다.' : '예약했습니다.');
+      loadRoom();
+    }, function (e) { err.textContent = roomErr(e); });
+  }
+  function delRoom() {
+    var b = $('rmDel');
+    if (!rmArm) { rmArm = true; b.textContent = '정말 삭제'; b.classList.add('arm'); setTimeout(function () { rmArm = false; b.textContent = '삭제'; b.classList.remove('arm'); }, 3500); return; }
+    sb.from('room_bookings').delete().eq('id', rmId).then(function (r) {
+      if (r.error) { $('rmErr').textContent = roomErr(r.error); return; }
+      $('rm').hidden = true; toast('예약을 삭제했습니다.'); loadRoom();
+    });
+  }
+  function loadRoom() {
+    var from = new Date(); from.setDate(from.getDate() - 7);
+    return sb.from('room_bookings').select('*').gte('day', dstr(from)).order('day').order('start_min').limit(3000).then(function (r) {
+      if (r.error) { room.ok = false; room.rows = []; }
+      else { room.ok = true; room.rows = r.data || []; }
+      renderRoomPill();
+      if (room.open) renderRoomPanel();
+    }, function () { room.ok = false; renderRoomPill(); });
+  }
+  function toggleRoom(force) {
+    room.open = force == null ? !room.open : force;
+    $('roomSec').classList.toggle('open', room.open);
+    if (room.open) { room.day = room.day || dstr(new Date()); renderRoomPanel(); }
+    renderRoomPill();
+  }
+  function initRoom() {
+    room.day = dstr(new Date());
+    $('rPill').addEventListener('click', function () { toggleRoom(); });
+    $('rmForm').addEventListener('submit', saveRoom);
+    $('rmCancel').addEventListener('click', function () { $('rm').hidden = true; });
+    $('rmDel').addEventListener('click', delRoom);
+    $('rm').addEventListener('click', function (e) { if (e.target === $('rm')) $('rm').hidden = true; });
+    renderRoomPill();
+    setInterval(function () { renderRoomPill(); if (room.open && room.day === dstr(new Date())) renderRoomPanel(); }, 60000);
+    try {
+      sb.channel('room-live').on('postgres_changes', { event: '*', schema: 'public', table: 'room_bookings' }, function () { loadRoom(); }).subscribe();
+    } catch (e) { /* 무시 */ }
+  }
+
   function start() {
     wirePw();
     if (!window.supabase || !window.supabase.createClient) { setStatus('err', '저장소 라이브러리를 불러오지 못했습니다.'); return; }
     sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
     try { passcode = localStorage.getItem('sched.pass') || ''; } catch (e) { passcode = ''; }
     updateLock();
+    initRoom();
     refresh();
     setInterval(function () { if (!document.hidden) refresh(); }, 30000);
     sb.channel('schedule-live')
